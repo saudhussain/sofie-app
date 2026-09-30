@@ -1,0 +1,71 @@
+name: nrk-recruitment-test
+services:
+  db:
+    hostname: mongo
+    image: mongo:6.0
+    restart: always
+    entrypoint: ["/usr/bin/mongod", "--replSet", "rs0", "--bind_ip_all"]
+    # the healthcheck avoids the need to initiate the replica set
+    healthcheck:
+      test: test $$(mongosh --quiet --eval "try {rs.initiate()} catch(e) {rs.status().ok}") -eq 1
+      interval: 10s
+      start_period: 30s
+    volumes:
+      - db-data:/data/db
+    networks:
+      - sofie
+
+  # Fix Ownership Snapshots mount
+  # Because docker volumes are owned by root by default
+  # And our images follow best-practise and don't run as root
+  change-vol-ownerships:
+    image: node:22-alpine
+    user: "root"
+    volumes:
+      - sofie-store:/mnt/sofie-store
+    entrypoint: ["sh", "-c", "chown -R node:node /mnt/sofie-store"]
+
+  sofie-core:
+    hostname: sofie-core
+    image: ghcr.io/sofie-automation/sofie-core-server-core:main
+    restart: always
+    environment:
+      PORT: "3000"
+      MONGO_URL: "mongodb://db:27017/meteor"
+      MONGO_OPLOG_URL: "mongodb://db:27017/local"
+      ROOT_URL: "https://localhost:3000"
+      SOFIE_STORE_PATH: "/mnt/sofie-store"
+    networks:
+      - sofie
+    volumes:
+      - sofie-store:/mnt/sofie-store
+    depends_on:
+      change-vol-ownerships:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+  live-status-gateway:
+    image: ghcr.io/sofie-automation/sofie-core-live-status-gateway:main
+    restart: always
+    environment:
+      DEVICE_ID: liveStatusGateway
+      CORE_HOST: sofie-core
+      CORE_PORT: "3000"
+    networks:
+      - sofie
+      # - lan_access
+    depends_on:
+      - sofie-core
+    ports:
+      - "8080:8080"
+
+networks:
+  sofie: # Apps that can talk to Sofie Core
+  # lan_access:
+  #   driver: bridge
+
+volumes:
+  db-data:
+  sofie-store:
