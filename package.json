@@ -1,0 +1,14 @@
+{
+  "name": "sofie-touch",
+  "private": true,
+  "workspaces": [
+    "web-app"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w web-app",
+    "build": "npm run build -w web-app",
+    "preview": "npm run preview -w web-app",
+    "lint": "npm run lint -w web-app",
+    "format": "npm run format -w web-app"
+  }
+}
