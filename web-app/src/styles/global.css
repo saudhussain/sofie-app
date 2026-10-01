@@ -13,6 +13,7 @@
   --color-ink: #e8eef5;
   --color-muted: #8d9aab;
   --color-standby: #e0a84a;
+  --color-ready: #5dbe7a;
   --color-cue: #3dbeff;
 }
 
@@ -25,14 +26,14 @@
 
   body {
     margin: 0;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    color: var(--color-ink);
     background-color: var(--color-stage);
     background-image: radial-gradient(
       1100px 420px at 50% -80px,
       color-mix(in srgb, var(--color-cue) 14%, transparent),
       transparent 70%
     );
-    color: var(--color-ink);
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
   }
 }
