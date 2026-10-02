@@ -1,4 +1,4 @@
-import type { AdaptedAdLib } from './adapter';
+import type { AdaptedAdLib } from '../types';
 
 /**
  * How global adlibs are drawn. Match sourceLayer and tags in this order.

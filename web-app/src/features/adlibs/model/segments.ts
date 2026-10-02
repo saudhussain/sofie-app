@@ -1,5 +1,5 @@
-import type { AdLib } from '../../../types';
-import type { AdaptedAdLib } from './adapter';
+import type { AdLib } from '../../live-status/types';
+import type { AdaptedAdLib } from '../types';
 
 const LOCAL_LAYER_ORDER = ['Tema', 'Super', 'Sted', 'Grafikk'] as const;
 

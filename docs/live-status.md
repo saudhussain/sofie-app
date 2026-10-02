@@ -61,4 +61,5 @@ When a rundown is active, the wide panel shows one segment at a time, grouped by
 | `web-app/src/features/adlibs/model/segments.ts` | Groups part adlibs into the segment strip |
 | `web-app/src/features/adlibs/model/global-layout.ts` | Places every global adlib into a control group |
 | `web-app/src/features/live-status/components/status-bar.tsx` | Renders the lamp |
-| `web-app/src/types/` | Adlib, playlist, and connection types |
+| `web-app/src/features/live-status/types.ts` | Gateway adlib, playlist, and connection types |
+| `web-app/src/features/adlibs/types.ts` | Board view-model for one adapted adlib |

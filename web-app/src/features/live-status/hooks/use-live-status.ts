@@ -1,9 +1,4 @@
 import { useEffect, useState } from 'react';
-import type {
-  AdLibsSnapshot,
-  ConnectionState,
-  PlaylistPosition,
-} from '../../../types';
 import { LIVE_STATUS_SUBSCRIPTIONS, LIVE_STATUS_URL } from '../config';
 import {
   connectionStateFromSnapshot,
@@ -11,6 +6,11 @@ import {
 } from '../connection-state';
 import { parseAdLibsMessage } from '../parse-adlibs';
 import { parseActivePlaylistMessage } from '../parse-playlist';
+import type {
+  AdLibsSnapshot,
+  ConnectionState,
+  PlaylistPosition,
+} from '../types';
 
 type SocketLink = 'connecting' | 'gateway-down' | 'open';
 

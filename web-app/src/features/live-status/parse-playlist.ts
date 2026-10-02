@@ -1,5 +1,5 @@
 import { isJsonObject } from '../../shared/lib/safe-json';
-import type { PlaylistPosition } from '../../types';
+import type { PlaylistPosition } from './types';
 
 const readSegmentId = (part: unknown): string | null => {
   if (!isJsonObject(part) || typeof part.segmentId !== 'string') {

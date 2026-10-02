@@ -45,3 +45,30 @@ export type AdLibsSnapshot = {
   globalAdLibs: GlobalAdLib[];
   rundownPlaylistId: string | null;
 };
+
+/**
+ * Segment ids taken from an `activePlaylist` push.
+ * Both stay null when that part is missing. The board then uses manual tabs.
+ */
+export type PlaylistPosition = {
+  currentSegmentId: string | null;
+  nextSegmentId: string | null;
+};
+
+/**
+ * What the status lamp can show. Lists exist only while connected,
+ * so a down gateway or an inactive rundown cannot keep old buttons.
+ * Segment ids come from the active playlist. Null means the on-air segment
+ * is not known yet.
+ */
+export type ConnectionState =
+  | { kind: 'connecting' }
+  | { kind: 'gateway-down' }
+  | { kind: 'rundown-inactive' }
+  | {
+      kind: 'connected';
+      adLibs: AdLib[];
+      globalAdLibs: GlobalAdLib[];
+      currentSegmentId: string | null;
+      nextSegmentId: string | null;
+    };

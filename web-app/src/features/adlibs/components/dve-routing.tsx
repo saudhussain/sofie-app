@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import type { AdaptedAdLib } from '../model/adapter';
 import { globalLayout, type RoutingModes } from '../model/global-layout';
+import type { AdaptedAdLib } from '../types';
 import { Chip } from './pressable';
 
 const IPS = [1, 2, 3, 4] as const;

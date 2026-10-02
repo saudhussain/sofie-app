@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { ConnectionState } from '../../../types';
 import { blockedPanelMessage } from '../../live-status/connection-state';
+import type { ConnectionState } from '../../live-status/types';
 import { adaptAdLib } from '../model/adapter';
 import {
   buildSegmentStrip,
