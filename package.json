@@ -5,10 +5,11 @@
     "web-app"
   ],
   "scripts": {
-    "dev": "npm run dev -w web-app",
     "build": "npm run build -w web-app",
+    "dev": "npm run dev -w web-app",
+    "format": "npm run format -w web-app",
+    "lint": "biome ci .",
     "preview": "npm run preview -w web-app",
-    "lint": "npm run lint -w web-app",
-    "format": "npm run format -w web-app"
+    "typecheck": "npm run typecheck -w web-app"
   }
 }
