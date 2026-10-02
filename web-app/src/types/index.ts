@@ -1,9 +1,9 @@
 export type {
   AdLib,
-  AdLibActionType,
   AdLibBase,
+  AdLibPublicData,
   AdLibsSnapshot,
-  AdlibListItem,
   GlobalAdLib,
 } from './adlib';
-export type { AdlibPanelKind, ConnectionState } from './connection';
+export type { ConnectionState } from './connection';
+export type { PlaylistPosition } from './playlist';

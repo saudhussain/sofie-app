@@ -15,6 +15,7 @@
   --color-standby: #e0a84a;
   --color-ready: #5dbe7a;
   --color-cue: #3dbeff;
+  --color-danger: #e15b4c;
 }
 
 @layer base {
@@ -28,6 +29,8 @@
     margin: 0;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
     color: var(--color-ink);
     background-color: var(--color-stage);
     background-image: radial-gradient(
@@ -35,5 +38,14 @@
       color-mix(in srgb, var(--color-cue) 14%, transparent),
       transparent 70%
     );
+  }
+
+  @keyframes hold-fill {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
   }
 }

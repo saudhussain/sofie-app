@@ -1,6 +1,6 @@
 # Live status
 
-The touch app listens to Sofie's Live Status Gateway for the adlibs that can be shown right now. It does not poll. The gateway pushes a new message whenever that set changes.
+The touch app listens to Sofie's Live Status Gateway and draws the buttons it sends. It does not poll, and a tap does not call Sofie. The gateway pushes a new message whenever a subscription changes.
 
 ## Gateway
 
@@ -8,27 +8,33 @@ The Docker stack publishes the gateway websocket at `ws://localhost:8080`.
 
 Override that address with `VITE_LIVE_STATUS_URL` before `npm run dev` if the gateway is not on the local default port.
 
-## Subscription
+## Subscriptions
 
-When the socket opens, the app sends the same subscribe message as Sofie's sample client:
+When the socket opens, the app sends one subscribe message per name. `reqid` is a client integer. The names are from the gateway `subscriptionName` enum:
 
 ```json
-{ "event": "subscribe", "subscription": { "name": "adLibs" }, "reqid": 1 }
+{ "event": "subscribe", "reqid": 1, "subscription": { "name": "adLibs" } }
 ```
 
-Messages with any other `event` are ignored. An `adLibs` message has this shape:
+```json
+{ "event": "subscribe", "reqid": 2, "subscription": { "name": "activePlaylist" } }
+```
+
+`adLibs` is the button list for the whole rundown. It has no current-segment field.
 
 | Field | Meaning |
 | --- | --- |
 | `rundownPlaylistId` | Id of the active rundown, or `null` when none is active |
-| `adLibs` | Actions for the content that is playing now. Each item has `id`, `name`, `sourceLayer`, `actionType`, `segmentId`, and `partId` |
-| `globalAdLibs` | Actions for the whole rundown. Same fields, without a segment or part |
+| `adLibs` | Part actions. Each item has `id`, `name`, `sourceLayer`, `actionType`, `tags`, `publicData`, `segmentId`, and `partId` |
+| `globalAdLibs` | Rundown-wide actions. Same fields, without a segment or part |
+
+`activePlaylist` supplies the on-air position. `currentPart.segmentId` is the current segment. When `currentPart` is null, the app uses `currentSegment.id`. `nextPart.segmentId` is the next segment. If that subscription never arrives, or both ids are missing, the segment strip is manual and the board says the current segment is unknown.
 
 Items that are missing an id or a name are dropped. The rest of the message is still used.
 
-## Connection states
+## What the screen shows
 
-The status lamp shows one of these:
+The status lamp stays as before:
 
 | Lamp | When |
 | --- | --- |
@@ -37,17 +43,22 @@ The status lamp shows one of these:
 | Rundown not active | The gateway is up and `rundownPlaylistId` is `null` |
 | Connected | The gateway is up and a rundown is active |
 
-While the gateway is down or the rundown is inactive, both panels stay empty. Names from the last good message are not kept on screen. After a rundown is active, each panel lists the names from the latest message. Tapping them does nothing yet.
+While the gateway is down or the rundown is inactive, both panels stay empty. Buttons from the last good message are not kept on screen.
+
+When a rundown is active, the wide panel shows one segment at a time, grouped by layer. The narrow panel shows every global adlib, independent of the selected segment. A tap does not run the adlib.
 
 ## Code
 
 | File | Role |
 | --- | --- |
-| `web-app/src/config/live-status.ts` | Gateway URL and subscribe payload |
-| `web-app/src/helpers/live-status.ts` | Parses an `adLibs` message, maps it to a connection state, and computes the reconnect delay |
-| `web-app/src/features/adlibs/adlib-panels.ts` | Empty-state copy and which adlibs a panel lists |
-| `web-app/src/features/live-status/use-live-status.ts` | Opens the socket, subscribes, and reconnects |
-| `web-app/src/types/` | Adlib and connection types |
-| `web-app/src/components/status-bar.tsx` | Renders the lamp |
-| `web-app/src/components/list-panel.tsx` | Renders a titled list or its empty state |
-| `web-app/src/features/adlibs/adlib-panel.tsx` | Adlib list built on the list panel |
+| `web-app/src/features/live-status/config.ts` | Gateway URL and subscribe payloads |
+| `web-app/src/helpers/adlibs.ts` | Parses an `adLibs` message |
+| `web-app/src/helpers/playlist.ts` | Parses an `activePlaylist` message |
+| `web-app/src/helpers/live-status.ts` | Maps a snapshot to a connection state, blocked panel copy, and reconnect delay |
+| `web-app/src/features/live-status/hooks/use-live-status.ts` | Opens the socket, subscribes, and reconnects |
+| `web-app/src/shared/lib/safe-json.ts` | Narrows unknown JSON values to objects |
+| `web-app/src/features/adlibs/model/adapter.ts` | Turns a raw adlib into title, group, and actions |
+| `web-app/src/features/adlibs/model/segments.ts` | Groups part adlibs into the segment strip |
+| `web-app/src/features/adlibs/model/global-layout.ts` | Places every global adlib into a control group |
+| `web-app/src/features/live-status/components/status-bar.tsx` | Renders the lamp |
+| `web-app/src/types/` | Adlib, playlist, and connection types |
