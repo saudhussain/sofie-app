@@ -1,4 +1,10 @@
 import { useMemo } from 'react';
+import {
+  EmptyLine,
+  PanelShell,
+  PanelSubheading,
+} from '../../../shared/ui/panel-shell';
+import { Pressable } from '../../../shared/ui/pressable';
 import { blockedPanelMessage } from '../../live-status/connection-state';
 import type { ConnectionState } from '../../live-status/types';
 import { adaptAdLib } from '../model/adapter';
@@ -11,8 +17,6 @@ import {
 } from '../model/global-layout';
 import { AdlibControl } from './adlib-control';
 import { DveRouting } from './dve-routing';
-import { EmptyLine, PanelShell, PanelSubheading } from './panel-shell';
-import { Pressable } from './pressable';
 
 function CameraButton({ indexLabel }: { indexLabel: string }) {
   return (

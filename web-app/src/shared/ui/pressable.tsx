@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { HOLD_MS, useButtonPress } from '../hooks/use-button-press';
+import { HOLD_MS, useButtonPress } from './use-button-press';
 
 type TooltipContent = {
   credit?: string;

@@ -1,4 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import {
+  EmptyLine,
+  PanelShell,
+  PanelSubheading,
+} from '../../../shared/ui/panel-shell';
 import { blockedPanelMessage } from '../../live-status/connection-state';
 import type { ConnectionState } from '../../live-status/types';
 import { adaptAdLib } from '../model/adapter';
@@ -8,7 +13,6 @@ import {
   groupSegments,
 } from '../model/segments';
 import { AdlibControl } from './adlib-control';
-import { EmptyLine, PanelShell, PanelSubheading } from './panel-shell';
 import { SegmentStrip } from './segment-strip';
 
 /**

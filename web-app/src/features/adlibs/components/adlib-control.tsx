@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Pressable } from '../../../shared/ui/pressable';
 import { formatDuration } from '../model/adapter';
 import type { AdaptedAdLib } from '../types';
-import { Pressable } from './pressable';
 
 type ControlItem = AdaptedAdLib & { duplicateIndex?: number };
 

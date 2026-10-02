@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
+import { Pressable } from '../../../shared/ui/pressable';
 import type { SegmentTab } from '../model/segments';
-import { Pressable } from './pressable';
 
 const roleLabel: Partial<Record<SegmentTab['role'], string>> = {
   current: 'On air',
