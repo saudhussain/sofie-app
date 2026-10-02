@@ -52,9 +52,9 @@ When a rundown is active, the wide panel shows one segment at a time, grouped by
 | File | Role |
 | --- | --- |
 | `web-app/src/features/live-status/config.ts` | Gateway URL and subscribe payloads |
-| `web-app/src/helpers/adlibs.ts` | Parses an `adLibs` message |
-| `web-app/src/helpers/playlist.ts` | Parses an `activePlaylist` message |
-| `web-app/src/helpers/live-status.ts` | Maps a snapshot to a connection state, blocked panel copy, and reconnect delay |
+| `web-app/src/features/live-status/parse-adlibs.ts` | Parses an `adLibs` message |
+| `web-app/src/features/live-status/parse-playlist.ts` | Parses an `activePlaylist` message |
+| `web-app/src/features/live-status/connection-state.ts` | Maps a snapshot to a connection state, blocked panel copy, and reconnect delay |
 | `web-app/src/features/live-status/hooks/use-live-status.ts` | Opens the socket, subscribes, and reconnects |
 | `web-app/src/shared/lib/safe-json.ts` | Narrows unknown JSON values to objects |
 | `web-app/src/features/adlibs/model/adapter.ts` | Turns a raw adlib into title, group, and actions |

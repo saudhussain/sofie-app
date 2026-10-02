@@ -2,7 +2,7 @@ import type {
   AdLibsSnapshot,
   ConnectionState,
   PlaylistPosition,
-} from '../types';
+} from '../../types';
 
 // First retry waits 1s, then 2s, then 4s. Later retries stay at 5s.
 const RECONNECT_BASE_MS = 1000;

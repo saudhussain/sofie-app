@@ -1,10 +1,10 @@
-import { isJsonObject } from '../shared/lib/safe-json';
+import { isJsonObject } from '../../shared/lib/safe-json';
 import type {
   AdLib,
   AdLibBase,
   AdLibPublicData,
   AdLibsSnapshot,
-} from '../types';
+} from '../../types';
 
 // A bad action type is skipped. The adlib itself can still be shown.
 const parseActionTypes = (value: unknown): AdLibBase['actionType'] => {
