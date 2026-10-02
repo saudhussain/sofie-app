@@ -2,7 +2,15 @@
   "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "extends": ["ultracite/biome/core", "ultracite/biome/react"],
   "vcs": {
-    "root": ".."
+    "root": "."
+  },
+  "files": {
+    "includes": [
+      "!!package-lock.json",
+      "!!rundown-snapshot.json",
+      "!!system-snapshot.json",
+      "!!.vscode"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -20,6 +28,9 @@
             "style": "type"
           }
         }
+      },
+      "performance": {
+        "noBarrelFile": "error"
       }
     }
   },
