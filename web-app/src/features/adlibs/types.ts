@@ -1,4 +1,4 @@
-import type { AdLibBase } from '../live-status/types';
+import type { AdLibBase } from '@/features/live-status/types';
 
 type AdaptedAction = {
   label: string;

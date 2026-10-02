@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
+import { blockedPanelMessage } from '@/features/live-status/connection-state';
+import type { ConnectionState } from '@/features/live-status/types';
 import {
   EmptyLine,
   PanelShell,
   PanelSubheading,
-} from '../../../shared/ui/panel-shell';
-import { blockedPanelMessage } from '../../live-status/connection-state';
-import type { ConnectionState } from '../../live-status/types';
+} from '@/shared/ui/panel-shell';
 import { adaptAdLib } from '../model/adapter';
 import {
   buildSegmentStrip,

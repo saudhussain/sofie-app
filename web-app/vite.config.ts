@@ -6,6 +6,11 @@ import { defineConfig } from 'vite';
 // app's origin so the browser does not hit a cross-origin block.
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      '@': new URL('./src', import.meta.url).pathname,
+    },
+  },
   server: {
     proxy: {
       '/api': {

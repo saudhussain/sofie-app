@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
+import { blockedPanelMessage } from '@/features/live-status/connection-state';
+import type { ConnectionState } from '@/features/live-status/types';
 import {
   EmptyLine,
   PanelShell,
   PanelSubheading,
-} from '../../../shared/ui/panel-shell';
-import { Pressable } from '../../../shared/ui/pressable';
-import { blockedPanelMessage } from '../../live-status/connection-state';
-import type { ConnectionState } from '../../live-status/types';
+} from '@/shared/ui/panel-shell';
+import { Pressable } from '@/shared/ui/pressable';
 import { adaptAdLib } from '../model/adapter';
 import {
   type GlobalSection,

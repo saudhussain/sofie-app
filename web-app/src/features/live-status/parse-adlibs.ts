@@ -1,4 +1,4 @@
-import { isJsonObject } from '../../shared/lib/safe-json';
+import { isJsonObject } from '@/shared/lib/safe-json';
 import type {
   AdLib,
   AdLibBase,

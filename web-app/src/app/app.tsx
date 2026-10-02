@@ -1,7 +1,7 @@
-import { GlobalPanel } from '../features/adlibs/components/global-panel';
-import { LocalPanel } from '../features/adlibs/components/local-panel';
-import { StatusBar } from '../features/live-status/components/status-bar';
-import { useLiveStatus } from '../features/live-status/hooks/use-live-status';
+import { GlobalPanel } from '@/features/adlibs/components/global-panel';
+import { LocalPanel } from '@/features/adlibs/components/local-panel';
+import { StatusBar } from '@/features/live-status/components/status-bar';
+import { useLiveStatus } from '@/features/live-status/hooks/use-live-status';
 
 /**
  * Landscape touch screen. Part adlibs take the wide column.

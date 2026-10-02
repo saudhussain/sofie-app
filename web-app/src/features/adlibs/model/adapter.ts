@@ -1,5 +1,5 @@
-import { isJsonObject } from '../../../shared/lib/safe-json';
-import type { AdLibBase } from '../../live-status/types';
+import type { AdLibBase } from '@/features/live-status/types';
+import { isJsonObject } from '@/shared/lib/safe-json';
 import type { AdaptedAdLib } from '../types';
 
 type NoraPicture = {

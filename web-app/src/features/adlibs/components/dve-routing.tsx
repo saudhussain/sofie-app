@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Chip } from '../../../shared/ui/pressable';
+import { Chip } from '@/shared/ui/pressable';
 import { globalLayout, type RoutingModes } from '../model/global-layout';
 import type { AdaptedAdLib } from '../types';
 
