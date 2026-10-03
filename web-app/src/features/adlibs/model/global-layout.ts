@@ -15,10 +15,6 @@ export const globalLayout = {
     { label: 'Current', tag: 'current' },
   ],
   dveRouting: { tag: 'dve-routing', title: 'DVE input' },
-  hold: {
-    names: ['Cancel Cued Part'],
-    tags: ['clear_all', 'exit-bts-dve'],
-  },
   modeActions: ['toggle', 'in', 'out'],
   namedGroups: [
     { tag: 'last-item', title: 'Last' },
@@ -354,11 +350,3 @@ export const layoutGlobalAdLibs = (items: AdaptedAdLib[]): GlobalSection[] => {
 
   return sections;
 };
-
-/**
- * Clear All and Exit BTS DVE carry a tag. Cancel Cued Part does not,
- * so it is matched on the gateway name.
- */
-export const needsHold = (item: AdaptedAdLib): boolean =>
-  globalLayout.hold.tags.some((tag) => hasTag(item, tag)) ||
-  globalLayout.hold.names.some((name) => item.raw.name === name);

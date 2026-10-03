@@ -32,4 +32,4 @@ npm run dev
 
 The dev server proxies `/api` to Sofie on port 3000.
 
-How the app listens for adlibs is described in [docs/live-status.md](docs/live-status.md).
+How the app listens for adlibs, and how a tap fires one, is described in [docs/live-status.md](docs/live-status.md).

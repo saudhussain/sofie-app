@@ -1,5 +1,10 @@
 import { useCallback, useState } from 'react';
 import { Chip } from '@/shared/ui/pressable';
+import {
+  fireStatusText,
+  fireStatusTone,
+  useAdLibFire,
+} from '../hooks/use-adlib-fire';
 import { globalLayout, type RoutingModes } from '../model/global-layout';
 import type { AdaptedAdLib } from '../types';
 
@@ -52,8 +57,39 @@ function IpChip({
 
 /**
  * A source cell is enabled only when the selected mode's item lists that
- * exact action name. Taps do not call Sofie yet.
+ * exact action name. A tap posts that action on the selected mode's adlib.
  */
+function SourceChip({
+  actionName,
+  item,
+  known,
+  label,
+}: {
+  actionName: string;
+  item: AdaptedAdLib | undefined;
+  known: boolean;
+  label: string;
+}) {
+  const { fire, message, status } = useAdLibFire();
+  const statusText = fireStatusText(status, message);
+  const onFire = useCallback(() => {
+    if (item) {
+      fire(item.id, actionName);
+    }
+  }, [actionName, fire, item]);
+
+  return (
+    <Chip
+      busy={status === 'busy'}
+      disabled={!known}
+      label={statusText ?? label}
+      live={Boolean(statusText)}
+      onFire={known && item ? onFire : undefined}
+      tone={fireStatusTone(status)}
+    />
+  );
+}
+
 function SourceGrid({
   ip,
   item,
@@ -75,9 +111,11 @@ function SourceGrid({
           ? item.actions.some((action) => action.name === actionName)
           : false;
         return (
-          <Chip
-            disabled={!known}
+          <SourceChip
+            actionName={actionName}
+            item={item}
             key={actionName}
+            known={known}
             label={`${label} ${source}`}
           />
         );
@@ -86,7 +124,10 @@ function SourceGrid({
   );
 }
 
-/** One control for the three dve-routing adlibs. Modes are chosen by tag, never by id. */
+/**
+ * One control for the three dve-routing adlibs. Modes are chosen by tag, never by id.
+ * Mode and IP chips only change the local selection. Source cells post.
+ */
 export const DveRouting = ({ modes }: { modes: RoutingModes }) => {
   const available = globalLayout.dveModes.filter((mode) => modes[mode.tag]);
   const [modeTag, setModeTag] = useState(available[0]?.tag ?? 'auto');

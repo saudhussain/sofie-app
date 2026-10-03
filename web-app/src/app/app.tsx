@@ -6,7 +6,7 @@ import { useLiveStatus } from '@/features/live-status/hooks/use-live-status';
 /**
  * Landscape touch screen. Part adlibs take the wide column.
  * Global controls stay in the narrow column for the whole rundown.
- * Both panels read lists from the same connection. Taps do not call Sofie yet.
+ * Both panels read lists from the same connection. A tap posts that adlib.
  */
 export const App = () => {
   const connection = useLiveStatus();

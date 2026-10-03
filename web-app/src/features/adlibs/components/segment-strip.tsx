@@ -32,7 +32,6 @@ function SegmentChip({
             : 'border-line text-ink'
         } ${selected ? 'border-cue' : ''}`}
         onFire={fire}
-        tooltip={{ title: tab.label }}
       >
         {marker ? (
           <span className="font-mono text-[10px] uppercase tracking-[0.16em]">

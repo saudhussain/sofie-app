@@ -1,6 +1,6 @@
 # Live status
 
-The touch app listens to Sofie's Live Status Gateway and draws the buttons it sends. It does not poll, and a tap does not call Sofie. The gateway pushes a new message whenever a subscription changes.
+The touch app listens to Sofie's Live Status Gateway and draws the buttons it sends. It does not poll. A tap posts that adlib through Sofie's OpenAPI. The gateway pushes a new message whenever a subscription changes.
 
 ## Gateway
 
@@ -45,7 +45,15 @@ The status lamp stays as before:
 
 While the gateway is down or the rundown is inactive, both panels stay empty. Buttons from the last good message are not kept on screen.
 
-When a rundown is active, the wide panel shows one segment at a time, grouped by layer. The narrow panel shows every global adlib, independent of the selected segment. A tap does not run the adlib.
+When a rundown is active, the wide panel shows one segment at a time, grouped by layer. The narrow panel shows every global adlib, independent of the selected segment.
+
+## Firing
+
+A completed press posts to `/api/v1.0/playlists/{rundownPlaylistId}/execute-adlib`. The body is `{ "adLibId": "<id>" }`. When the tap chose one action (a zone, a mode, a camera's only action, or a DVE source cell), the body also includes `actionType`. `adLibOptions` is not sent.
+
+The request times out after 10 seconds. While it is in flight that control says **Sending** and a second tap does nothing. The other controls stay usable. A 200 shows **Sent** for a moment, then the label returns. A 412 shows **Not on air**. Any other failure shows **Failed** until the next tap on that control.
+
+Segment tabs, and the DVE mode and IP chips, only change the local view.
 
 ## Code
 
@@ -64,3 +72,5 @@ When a rundown is active, the wide panel shows one segment at a time, grouped by
 | `web-app/src/features/live-status/components/status-bar.tsx` | Renders the lamp |
 | `web-app/src/features/live-status/types.ts` | Gateway adlib, playlist, and connection types |
 | `web-app/src/features/adlibs/types.ts` | Board view-model for one adapted adlib |
+| `web-app/src/features/adlibs/api/execute-adlib.ts` | Posts one adlib and turns the response into a result |
+| `web-app/src/features/adlibs/hooks/use-adlib-fire.ts` | Per-control sending, sent, and failed state |

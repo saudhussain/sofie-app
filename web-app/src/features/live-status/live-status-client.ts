@@ -35,6 +35,7 @@ export const deriveLiveStatus = (
     globalAdLibs: snapshot.globalAdLibs,
     kind: 'connected',
     nextSegmentId: playlist?.nextSegmentId ?? null,
+    rundownPlaylistId: snapshot.rundownPlaylistId,
   };
 };
 
@@ -50,9 +51,10 @@ const sameConnection = (
   }
   return (
     left.adLibs === right.adLibs &&
-    left.globalAdLibs === right.globalAdLibs &&
     left.currentSegmentId === right.currentSegmentId &&
-    left.nextSegmentId === right.nextSegmentId
+    left.globalAdLibs === right.globalAdLibs &&
+    left.nextSegmentId === right.nextSegmentId &&
+    left.rundownPlaylistId === right.rundownPlaylistId
   );
 };
 

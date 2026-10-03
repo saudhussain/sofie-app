@@ -39,13 +39,4 @@
       transparent 70%
     );
   }
-
-  @keyframes hold-fill {
-    from {
-      transform: scaleX(0);
-    }
-    to {
-      transform: scaleX(1);
-    }
-  }
 }

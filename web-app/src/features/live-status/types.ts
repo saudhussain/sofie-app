@@ -59,7 +59,7 @@ export type PlaylistPosition = {
  * What the status lamp can show. Lists exist only while connected,
  * so a down gateway or an inactive rundown cannot keep old buttons.
  * Segment ids come from the active playlist. Null means the on-air segment
- * is not known yet.
+ * is not known yet. `rundownPlaylistId` is the id execute-adlib posts to.
  */
 export type ConnectionState =
   | { kind: 'connecting' }
@@ -68,7 +68,8 @@ export type ConnectionState =
   | {
       kind: 'connected';
       adLibs: AdLib[];
-      globalAdLibs: GlobalAdLib[];
       currentSegmentId: string | null;
+      globalAdLibs: GlobalAdLib[];
       nextSegmentId: string | null;
+      rundownPlaylistId: string;
     };

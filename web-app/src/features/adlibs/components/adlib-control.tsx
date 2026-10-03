@@ -1,5 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable } from '@/shared/ui/pressable';
+import {
+  type FireStatus,
+  type FireTone,
+  fireStatusText,
+  fireStatusTone,
+  useAdLibFire,
+} from '../hooks/use-adlib-fire';
 import { formatDuration } from '../model/adapter';
 import type { AdaptedAdLib } from '../types';
 
@@ -9,7 +16,6 @@ type AdlibControlProps = {
   compact?: boolean;
   danger?: boolean;
   hint?: string;
-  hold?: boolean;
   item: ControlItem;
 };
 
@@ -58,16 +64,27 @@ function Thumbnail({ url }: { url: string }) {
   );
 }
 
+const toneClass: Record<FireTone, string> = {
+  danger: 'text-danger',
+  ready: 'text-ready',
+  standby: 'text-standby',
+};
+
 function DetailLine({
   detail,
   statusText,
+  tone,
 }: {
   detail?: string;
   statusText?: string;
+  tone?: FireTone;
 }) {
   if (statusText) {
     return (
-      <p className="truncate font-mono text-[11px] text-standby uppercase tracking-[0.14em]">
+      <p
+        aria-live="polite"
+        className={`truncate font-mono text-[11px] uppercase tracking-[0.14em] ${toneClass[tone ?? 'standby']}`}
+      >
         {statusText}
       </p>
     );
@@ -81,9 +98,11 @@ function DetailLine({
 function Face({
   item,
   statusText,
+  tone,
 }: {
   item: ControlItem;
   statusText?: string;
+  tone?: FireTone;
 }) {
   const detail = detailOf(item);
   return (
@@ -91,7 +110,7 @@ function Face({
       {item.thumbnailUrl ? <Thumbnail url={item.thumbnailUrl} /> : null}
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium text-base text-ink">{item.title}</p>
-        <DetailLine detail={detail} statusText={statusText} />
+        <DetailLine detail={detail} statusText={statusText} tone={tone} />
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">
         {item.duplicateIndex ? (
@@ -109,41 +128,56 @@ function Face({
   );
 }
 
-const zoneClass = (danger: boolean, compact: boolean) =>
+/** A fire tone replaces the idle border. Danger text stays only while idle. */
+const borderFor = (danger: boolean, status: FireStatus): string => {
+  const tone = fireStatusTone(status);
+  if (tone === 'standby') {
+    return 'border-standby';
+  }
+  if (tone === 'ready') {
+    return 'border-ready';
+  }
+  if (tone === 'danger' || danger) {
+    return 'border-danger';
+  }
+  return 'border-line active:border-cue active:shadow-[0_0_8px_var(--color-cue)]';
+};
+
+const zoneClass = (danger: boolean, compact: boolean, status: FireStatus) =>
   [
     'relative overflow-hidden border px-3 py-2 text-left',
     compact ? 'min-h-12' : 'min-h-22',
-    danger
-      ? 'border-danger text-danger'
-      : 'border-line active:border-cue active:shadow-[0_0_8px_var(--color-cue)]',
+    borderFor(danger, status),
+    danger && status === 'idle' ? 'text-danger' : '',
   ].join(' ');
 
-const itemTooltip = (item: ControlItem) => ({
-  credit: item.credit,
-  subtitle: item.subtitle,
-  title: item.title,
-});
-
 function ActionZone({
+  actionName,
   danger,
   item,
   label,
 }: {
+  actionName: string;
   danger?: boolean;
   item: ControlItem;
   label: string;
 }) {
+  const { fire, message, status } = useAdLibFire();
+  const statusText = fireStatusText(status, message);
+  // Each zone is one chosen action, so the action name always goes in the body.
+  const onFire = useCallback(() => {
+    fire(item.id, actionName);
+  }, [actionName, fire, item.id]);
   return (
     <Pressable
-      aria-label={`${item.title}, ${label}`}
-      className={`${zoneClass(Boolean(danger), false)} w-full bg-stage`}
-      tooltip={itemTooltip(item)}
+      aria-busy={status === 'busy'}
+      aria-label={`${item.title}, ${statusText ?? label}`}
+      className={`${zoneClass(Boolean(danger), false, status)} w-full bg-stage`}
+      onFire={onFire}
     >
-      {({ holdHint }) => (
-        <span className="relative font-mono text-[11px] uppercase tracking-[0.14em]">
-          {holdHint ?? label}
-        </span>
-      )}
+      <span className="relative font-mono text-[11px] uppercase tracking-[0.14em]">
+        {statusText ?? label}
+      </span>
     </Pressable>
   );
 }
@@ -156,7 +190,7 @@ function SplitAdlib({
 }: AdlibControlProps) {
   return (
     <article
-      className={`flex flex-col gap-2 border bg-stage p-3 ${compact ? 'min-h-12' : 'min-h-22'} ${danger ? 'border-danger' : 'border-line'}`}
+      className={`flex flex-col gap-2 border bg-stage p-3 ${compact ? 'min-h-12' : 'min-h-22'} ${danger ? 'border-danger text-danger' : 'border-line'}`}
     >
       <PreviewFace item={item} />
       {hint ? (
@@ -167,6 +201,7 @@ function SplitAdlib({
       <div className="grid grid-cols-2 gap-2">
         {item.actions.map((action) => (
           <ActionZone
+            actionName={action.name}
             danger={danger}
             item={item}
             key={action.name}
@@ -182,42 +217,44 @@ function SingleAdlib({
   compact = false,
   danger = false,
   hint,
-  hold = false,
   item,
 }: AdlibControlProps) {
+  const { fire, message, status } = useAdLibFire();
+  const statusText = fireStatusText(status, message);
   const [action] = item.actions;
+  // One action is the choice. Several actions are separate zones above.
+  // None, as on Clear All Graphics, sends the id alone.
+  const actionType = item.actions.length === 1 ? action?.name : undefined;
+  const onFire = useCallback(() => {
+    fire(item.id, actionType);
+  }, [actionType, fire, item.id]);
 
   return (
     <Pressable
-      className={`${zoneClass(danger, compact)} flex w-full flex-col gap-2 bg-stage p-3`}
-      holdFill
-      mode={hold ? 'hold' : 'tap'}
-      tooltip={itemTooltip(item)}
+      aria-busy={status === 'busy'}
+      className={`${zoneClass(danger, compact, status)} flex w-full flex-col gap-2 bg-stage p-3`}
+      onFire={onFire}
     >
-      {({ holdHint }) => (
-        <>
-          <span
-            aria-hidden="true"
-            className="absolute inset-y-3 left-0 w-0.5 bg-cue"
-          />
-          <Face item={item} statusText={holdHint} />
-          {hint ? (
-            <span className="font-mono text-[11px] text-muted uppercase tracking-[0.14em]">
-              {hint}
-            </span>
-          ) : null}
-          {action && !holdHint ? (
-            <span className="font-mono text-[11px] text-cue uppercase tracking-[0.14em]">
-              {action.label}
-            </span>
-          ) : null}
-        </>
-      )}
+      <span
+        aria-hidden="true"
+        className="absolute inset-y-3 left-0 w-0.5 bg-cue"
+      />
+      <Face item={item} statusText={statusText} tone={fireStatusTone(status)} />
+      {hint ? (
+        <span className="font-mono text-[11px] text-muted uppercase tracking-[0.14em]">
+          {hint}
+        </span>
+      ) : null}
+      {action && !statusText ? (
+        <span className="font-mono text-[11px] text-cue uppercase tracking-[0.14em]">
+          {action.label}
+        </span>
+      ) : null}
     </Pressable>
   );
 }
 
-/** One adlib. Several actions become separate zones. A hold control ignores a quick tap. Taps do not call Sofie. */
+/** One adlib. Several actions become separate zones. A click posts the adlib. */
 export const AdlibControl = (props: AdlibControlProps) =>
   props.item.actions.length > 1 ? (
     <SplitAdlib {...props} />
@@ -227,17 +264,12 @@ export const AdlibControl = (props: AdlibControlProps) =>
 
 function PreviewFace({ item }: { item: ControlItem }) {
   return (
-    <Pressable
-      as="div"
-      className="relative min-w-0 pl-3"
-      mode="preview"
-      tooltip={itemTooltip(item)}
-    >
+    <div className="relative min-w-0 pl-3">
       <span
         aria-hidden="true"
         className="absolute inset-y-0 left-0 w-0.5 bg-cue"
       />
       <Face item={item} />
-    </Pressable>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { blockedPanelMessage } from '@/features/live-status/connection-state';
 import type { ConnectionState } from '@/features/live-status/types';
 import {
@@ -7,38 +7,68 @@ import {
   PanelSubheading,
 } from '@/shared/ui/panel-shell';
 import { Pressable } from '@/shared/ui/pressable';
+import {
+  fireFrameClass,
+  fireStatusText,
+  useAdLibFire,
+} from '../hooks/use-adlib-fire';
 import { adaptAdLib } from '../model/adapter';
 import {
   type GlobalSection,
   globalLayout,
   layoutGlobalAdLibs,
-  needsHold,
   sectionCount,
 } from '../model/global-layout';
 import { AdlibControl } from './adlib-control';
 import { DveRouting } from './dve-routing';
 
-function CameraButton({ indexLabel }: { indexLabel: string }) {
+function CameraButton({ item }: { item: ReturnType<typeof adaptAdLib> }) {
+  const { fire, message, status } = useAdLibFire();
+  const statusText = fireStatusText(status, message);
+  const [action] = item.actions;
+  // A camera's only action is the choice. With none, the body is the id alone.
+  const actionType = item.actions.length === 1 ? action?.name : undefined;
+  const onFire = useCallback(() => {
+    fire(item.id, actionType);
+  }, [actionType, fire, item.id]);
+
   return (
-    <Pressable className="min-h-12 border border-line bg-stage px-1 font-mono text-[11px] text-ink uppercase tracking-[0.08em] active:border-cue">
-      {`Cam ${indexLabel}`}
+    <Pressable
+      aria-busy={status === 'busy'}
+      aria-live={statusText ? 'polite' : undefined}
+      className={`min-h-12 truncate border bg-stage px-1 font-mono text-[11px] uppercase tracking-[0.08em] ${fireFrameClass(status) ?? 'border-line text-ink active:border-cue'}`}
+      onFire={onFire}
+    >
+      {statusText ?? `Cam ${item.raw.name}`}
     </Pressable>
   );
 }
 
 function ModeZone({
   action,
+  itemId,
   title,
 }: {
   action: { label: string; name: string };
+  itemId: string;
   title: string;
 }) {
+  const { fire, message, status } = useAdLibFire();
+  const statusText = fireStatusText(status, message);
+  // Each zone is one chosen action, so the action name always goes in the body.
+  const onFire = useCallback(() => {
+    fire(itemId, action.name);
+  }, [action.name, fire, itemId]);
+
   return (
     <Pressable
-      aria-label={`${title}, ${action.label}`}
-      className="min-h-12 border border-line bg-stage px-2 font-mono text-[11px] uppercase tracking-[0.12em] active:border-cue"
+      aria-busy={status === 'busy'}
+      aria-label={`${title}, ${statusText ?? action.label}`}
+      aria-live={statusText ? 'polite' : undefined}
+      className={`min-h-12 truncate border bg-stage px-2 font-mono text-[11px] uppercase tracking-[0.12em] ${fireFrameClass(status) ?? 'border-line text-ink active:border-cue'}`}
+      onFire={onFire}
     >
-      {action.label}
+      {statusText ?? action.label}
     </Pressable>
   );
 }
@@ -53,7 +83,12 @@ function ModeControl({ item }: { item: ReturnType<typeof adaptAdLib> }) {
       <p className="truncate text-sm">{item.title}</p>
       <div className="grid grid-cols-3 gap-2">
         {actions.map((action) => (
-          <ModeZone action={action} key={action.name} title={item.title} />
+          <ModeZone
+            action={action}
+            itemId={item.id}
+            key={action.name}
+            title={item.title}
+          />
         ))}
       </div>
     </div>
@@ -70,12 +105,7 @@ function ButtonGroup({
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-2">
       {items.map((item) => (
-        <AdlibControl
-          danger={danger || needsHold(item)}
-          hold={needsHold(item)}
-          item={item}
-          key={item.id}
-        />
+        <AdlibControl danger={danger} item={item} key={item.id} />
       ))}
     </div>
   );
@@ -87,7 +117,7 @@ function SectionBody({ section }: { section: GlobalSection }) {
       return (
         <div className="grid grid-cols-4 gap-2">
           {section.items.map((item) => (
-            <CameraButton indexLabel={item.raw.name} key={item.id} />
+            <CameraButton item={item} key={item.id} />
           ))}
         </div>
       );

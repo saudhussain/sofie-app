@@ -14,7 +14,7 @@ const EXECUTE_ADLIB_TIMEOUT_MS = 10_000;
 
 /**
  * POST /api/v1.0/playlists/{playlistId}/execute-adlib
- * Body is `adLibId` and, when a zone or DVE cell chose one, `actionType`.
+ * Body is `adLibId` and, when the tap chose an action, `actionType`.
  * `adLibOptions` is not sent. Network errors, timeouts, and non-2xx
  * responses become a result. This function does not throw to the caller.
  */
