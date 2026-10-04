@@ -1,6 +1,6 @@
 import type { AdaptedAdLib } from '../types';
 
-/** Tags whose adlibs take something off air. Those are drawn in red. */
+/** Tags whose adlibs take something off air. Those colour the cue in danger. */
 const DANGER_TAGS = ['clear', 'clear_all', 'exit-bts-dve'];
 
 export type GlobalSection = {

@@ -30,6 +30,12 @@ export function ActionZone({
       className={`${zoneClass(Boolean(danger), compact, status)} w-full bg-stage`}
       onFire={onFire}
     >
+      {danger ? (
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-2 left-0 w-0.5 bg-danger"
+        />
+      ) : null}
       <span className="relative font-mono text-[11px] uppercase tracking-[0.14em]">
         {statusText ?? label}
       </span>

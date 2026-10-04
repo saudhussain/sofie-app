@@ -7,7 +7,7 @@ import {
 } from '../../hooks/use-adlib-fire';
 import { Face } from './face';
 import type { AdlibControlProps } from './types';
-import { zoneClass } from './zone-class';
+import { cueClass, zoneClass } from './zone-class';
 
 /**
  * The whole face is the button.
@@ -38,7 +38,7 @@ export function SingleAdlib({
     >
       <span
         aria-hidden="true"
-        className="absolute inset-y-3 left-0 w-0.5 bg-cue"
+        className={`absolute inset-y-3 left-0 w-0.5 ${cueClass(danger)}`}
       />
       <Face item={item} statusText={statusText} tone={fireStatusTone(status)} />
       {hint ? (

@@ -23,9 +23,9 @@ export function SplitAdlib({
 }: AdlibControlProps) {
   return (
     <article
-      className={`flex flex-col gap-2 border bg-stage p-3 ${compact ? 'min-h-12' : 'min-h-22'} ${danger ? 'border-danger text-danger' : 'border-line'}`}
+      className={`flex flex-col gap-2 border border-line bg-stage p-3 ${compact ? 'min-h-12' : 'min-h-22'} ${danger ? 'text-danger' : ''}`}
     >
-      <PreviewFace item={item} />
+      <PreviewFace danger={danger} item={item} />
       {hint ? (
         <p className="font-mono text-[11px] text-muted uppercase tracking-[0.14em]">
           {hint}

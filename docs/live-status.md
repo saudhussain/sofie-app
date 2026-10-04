@@ -57,7 +57,7 @@ An adlib that offers several actions is drawn as a header plus one zone per acti
 
 A completed press posts to `/api/v1.0/playlists/{rundownPlaylistId}/execute-adlib`. The body is `{ "adLibId": "<id>" }`. When the tap chose one action, either the adlib's only action or one zone of several, the body also includes `actionType`. `adLibOptions` is not sent.
 
-The request times out after 10 seconds. While it is in flight that control says **Sending** and a second tap does nothing. The other controls stay usable. A 200 shows **Sent** for a moment, then the label returns. A 412 shows **Not on air**. Any other failure shows **Failed** until the next tap on that control.
+The request times out after 10 seconds. While it is in flight that control says **Sending** and a second tap does nothing. The other controls stay usable. A 200 shows **Sent** for a moment, then the label returns. A 412 shows **Not on air** for a moment, then the label returns. Any other failure shows **Failed** until the next tap on that control.
 
 Segment tabs only change the local view. So does opening a disclosure.
 

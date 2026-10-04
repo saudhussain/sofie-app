@@ -39,7 +39,7 @@ export const Hint: Story = {
   args: { hint: 'Queued' },
 };
 
-/** No playlist id, so the tap stays on the control and reads Not on air. */
+/** No playlist id, so the tap is not sent. The control reads Not on air, then its own text returns. */
 export const NotOnAir: Story = {
   render: (args) => (
     <PlaylistIdProvider playlistId={null}>

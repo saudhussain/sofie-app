@@ -6,8 +6,8 @@ export type FireStatus = 'idle' | 'busy' | 'success' | 'error';
 
 export type FireTone = 'danger' | 'ready' | 'standby';
 
-/** How long "Sent" stays on the control before its own label returns. */
-const SUCCESS_VISIBLE_MS = 1200;
+/** How long "Sent" and "Not on air" stay before the control's own text returns. */
+const STATUS_VISIBLE_MS = 1200;
 
 /**
  * Label that replaces the button text while a tap is in flight or just finished.
@@ -50,9 +50,9 @@ export const fireToneClass: Record<FireTone, { border: string; text: string }> =
 
 /**
  * One control's execute-adlib state. A second tap while the request is in
- * flight does nothing. Success clears itself. An error stays until the next tap.
- * The playlist id comes from the provider in `App`. With no active rundown
- * the tap is not sent.
+ * flight does nothing. Sent and Not on air clear themselves. A failure stays
+ * until the next tap. The playlist id comes from the provider in `App`.
+ * With no active rundown the tap is not sent.
  */
 export const useAdLibFire = () => {
   const playlistId = usePlaylistId();
@@ -84,20 +84,34 @@ export const useAdLibFire = () => {
         setMessage(nextMessage);
       };
 
+      const showThenRestore = (
+        press: number,
+        next: FireStatus,
+        nextMessage: string
+      ) => {
+        apply(next, nextMessage);
+        clearTimer.current = window.setTimeout(() => {
+          if (press !== generation.current) {
+            return;
+          }
+          apply('idle');
+        }, STATUS_VISIBLE_MS);
+      };
+
       if (statusRef.current === 'busy') {
         return;
       }
       window.clearTimeout(clearTimer.current);
       clearTimer.current = undefined;
 
-      // The connection can drop between render and the tap. Do not post.
-      if (playlistId === null) {
-        apply('error', 'Not on air');
-        return;
-      }
-
       const request = generation.current + 1;
       generation.current = request;
+
+      // The connection can drop between render and the tap. Do not post.
+      if (playlistId === null) {
+        showThenRestore(request, 'error', 'Not on air');
+        return;
+      }
       const controller = new AbortController();
       abortRef.current = controller;
       apply('busy');
@@ -116,20 +130,16 @@ export const useAdLibFire = () => {
             return;
           }
           if (result.kind === 'ok') {
-            apply('success', 'Sent');
-            clearTimer.current = window.setTimeout(() => {
-              if (request !== generation.current) {
-                return;
-              }
-              apply('idle');
-            }, SUCCESS_VISIBLE_MS);
+            showThenRestore(request, 'success', 'Sent');
             return;
           }
-          // 412 is "Not on air". Every other result, including a timeout, is "Failed".
-          apply(
-            'error',
-            result.kind === 'not-on-air' ? 'Not on air' : 'Failed'
-          );
+          // 412 is "Not on air", and the label returns. Every other result,
+          // including a timeout, stays "Failed" until the next tap.
+          if (result.kind === 'not-on-air') {
+            showThenRestore(request, 'error', 'Not on air');
+            return;
+          }
+          apply('error', 'Failed');
         } catch {
           if (request !== generation.current) {
             return;
