@@ -101,6 +101,10 @@ function DetailLine({
   return <p className="truncate text-muted text-sm">{detail}</p>;
 }
 
+/**
+ * Thumbnail, title, and detail. Shared by the single button and the split
+ * header. A status, when passed, replaces the idle credit or subtitle.
+ */
 function Face({
   item,
   statusText,
