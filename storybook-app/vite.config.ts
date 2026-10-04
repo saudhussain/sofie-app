@@ -32,6 +32,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': webAppSrc,
+      // Same browser build the touch app uses. The Node build starts a worker.
+      pino: new URL('../node_modules/pino/browser.js', import.meta.url)
+        .pathname,
     },
   },
   server: {

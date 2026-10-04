@@ -10,6 +10,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': new URL('./src', import.meta.url).pathname,
+      // The Node build of Pino starts a worker. The touch app and Vitest
+      // both use the browser build, which writes to the console.
+      pino: new URL('../node_modules/pino/browser.js', import.meta.url)
+        .pathname,
     },
   },
   server: {

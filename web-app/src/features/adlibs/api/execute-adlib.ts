@@ -1,3 +1,7 @@
+import { logger } from '@/shared/lib/logger';
+
+const log = logger.child({ module: 'execute-adlib' });
+
 export type ExecuteAdLibResult =
   | { kind: 'ok' }
   | { kind: 'not-on-air' }
@@ -35,11 +39,22 @@ export const executeAdLib = async ({
   if (signal) {
     // The control unmounted before this call. Do not open the request.
     if (signal.aborted) {
+      log.info(
+        { adLibId, playlistId },
+        'execute-adlib aborted before the request opened'
+      );
       return { kind: 'error' };
     }
     signal.addEventListener('abort', onAbort, { once: true });
   }
   const timer = window.setTimeout(onAbort, EXECUTE_ADLIB_TIMEOUT_MS);
+
+  log.info(
+    actionType === undefined
+      ? { adLibId, playlistId }
+      : { actionType, adLibId, playlistId },
+    'posting execute-adlib'
+  );
 
   try {
     const response = await fetch(
@@ -54,13 +69,39 @@ export const executeAdLib = async ({
       }
     );
     if (response.status === 412) {
+      log.warn(
+        { adLibId, playlistId, status: response.status },
+        'rundown is not on air'
+      );
       return { kind: 'not-on-air' };
     }
     if (!response.ok) {
+      log.error(
+        { adLibId, playlistId, status: response.status },
+        'execute-adlib rejected'
+      );
       return { kind: 'error' };
     }
+    log.info({ adLibId, playlistId }, 'execute-adlib accepted');
     return { kind: 'ok' };
-  } catch {
+  } catch (error) {
+    if (signal?.aborted) {
+      log.info({ adLibId, playlistId }, 'execute-adlib aborted');
+    } else if (controller.signal.aborted) {
+      log.error(
+        { adLibId, playlistId, timeoutMs: EXECUTE_ADLIB_TIMEOUT_MS },
+        'execute-adlib timed out'
+      );
+    } else {
+      log.error(
+        {
+          adLibId,
+          error: error instanceof Error ? error.message : String(error),
+          playlistId,
+        },
+        'execute-adlib request failed'
+      );
+    }
     return { kind: 'error' };
   } finally {
     window.clearTimeout(timer);

@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePlaylistId } from '@/features/live-status/playlist-id';
+import { logger } from '@/shared/lib/logger';
 import { executeAdLib } from '../api/execute-adlib';
+
+const log = logger.child({ module: 'adlib-fire' });
+
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
 
 export type FireStatus = 'idle' | 'busy' | 'success' | 'error';
 
@@ -99,6 +105,10 @@ export const useAdLibFire = () => {
       };
 
       if (statusRef.current === 'busy') {
+        log.debug(
+          { adLibId },
+          'ignored a tap while execute-adlib is in flight'
+        );
         return;
       }
       window.clearTimeout(clearTimer.current);
@@ -109,6 +119,7 @@ export const useAdLibFire = () => {
 
       // The connection can drop between render and the tap. Do not post.
       if (playlistId === null) {
+        log.warn({ adLibId }, 'tap was not sent; no rundown is active');
         showThenRestore(request, 'error', 'Not on air');
         return;
       }
@@ -127,6 +138,7 @@ export const useAdLibFire = () => {
           });
           // This press was replaced or the control unmounted.
           if (request !== generation.current) {
+            log.debug({ adLibId }, 'ignored a late execute-adlib response');
             return;
           }
           if (result.kind === 'ok') {
@@ -140,16 +152,23 @@ export const useAdLibFire = () => {
             return;
           }
           apply('error', 'Failed');
-        } catch {
+        } catch (error) {
           if (request !== generation.current) {
+            log.debug({ adLibId }, 'ignored a late execute-adlib response');
             return;
           }
+          log.error(
+            { adLibId, error: errorMessage(error) },
+            'execute-adlib rejected'
+          );
           apply('error', 'Failed');
         }
       };
 
       // executeAdLib returns a result. This covers a rejection that escaped it.
-      send().catch(() => undefined);
+      send().catch((error: unknown) => {
+        log.error({ adLibId, error: errorMessage(error) }, 'adlib fire failed');
+      });
     },
     [playlistId]
   );

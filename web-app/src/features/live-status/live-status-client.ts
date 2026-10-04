@@ -1,3 +1,5 @@
+import { logger } from '@/shared/lib/logger';
+import { isJsonObject } from '@/shared/lib/safe-json';
 import { LIVE_STATUS_SUBSCRIPTIONS, LIVE_STATUS_URL } from './config';
 import { reconnectDelay } from './connection-state';
 import { parseAdLibsMessage } from './parse-adlibs';
@@ -7,6 +9,50 @@ import type {
   ConnectionState,
   PlaylistPosition,
 } from './types';
+
+const log = logger.child({ module: 'live-status' });
+
+/** Subscribe acks and other events have a name. A bad frame may not. */
+const frameEvent = (payload: unknown): string | undefined =>
+  isJsonObject(payload) && typeof payload.event === 'string'
+    ? payload.event
+    : undefined;
+
+/**
+ * Lamp changes are info. A connected push that only refreshes the lists
+ * is debug, because those arrive for the whole show.
+ */
+const logStatus = (previous: ConnectionState, next: ConnectionState) => {
+  if (previous.kind !== next.kind) {
+    if (next.kind === 'connected') {
+      log.info(
+        {
+          adLibCount: next.adLibs.length,
+          from: previous.kind,
+          globalAdLibCount: next.globalAdLibs.length,
+          rundownPlaylistId: next.rundownPlaylistId,
+          to: next.kind,
+        },
+        'live status changed'
+      );
+      return;
+    }
+    log.info({ from: previous.kind, to: next.kind }, 'live status changed');
+    return;
+  }
+  if (next.kind === 'connected') {
+    log.debug(
+      {
+        adLibCount: next.adLibs.length,
+        currentSegmentId: next.currentSegmentId,
+        globalAdLibCount: next.globalAdLibs.length,
+        nextSegmentId: next.nextSegmentId,
+        rundownPlaylistId: next.rundownPlaylistId,
+      },
+      'live status lists updated'
+    );
+  }
+};
 
 /**
  * Lamp state from whether the gateway is down and the last good payloads.
@@ -93,6 +139,7 @@ export const createLiveStatusClient = (
     if (sameConnection(derived, next)) {
       return;
     }
+    logStatus(derived, next);
     derived = next;
     for (const listener of listeners) {
       listener();
@@ -107,7 +154,12 @@ export const createLiveStatusClient = (
    * retry then sets Connecting and throws again in the same turn, so React
    * paints Gateway down.
    */
-  const dropAndRetry = () => {
+  const dropAndRetry = (reason: string) => {
+    const delayMs = reconnectDelay(reconnectAttempt);
+    log.warn(
+      { attempt: reconnectAttempt, delayMs, reason, url },
+      'live status gateway is down; retrying'
+    );
     gatewayDown = true;
     snapshot = null;
     playlist = null;
@@ -116,17 +168,18 @@ export const createLiveStatusClient = (
       gatewayDown = false;
       notify();
       connect();
-    }, reconnectDelay(reconnectAttempt));
+    }, delayMs);
     reconnectAttempt += 1;
   };
 
   const connect = () => {
+    log.info({ url }, 'opening live status socket');
     let socket: WebSocket;
     // `new WebSocket` throws when the URL is invalid.
     try {
       socket = new WebSocket(url);
-    } catch {
-      dropAndRetry();
+    } catch (error) {
+      dropAndRetry(error instanceof Error ? error.message : 'invalid url');
       return;
     }
 
@@ -134,6 +187,7 @@ export const createLiveStatusClient = (
       // The backoff is not reset here. A gateway that is still starting up
       // accepts the socket and drops it again, so an open on its own proves
       // nothing. Stay on connecting until adLibs arrives.
+      log.info({ url }, 'live status socket open');
       for (const subscription of LIVE_STATUS_SUBSCRIPTIONS) {
         socket.send(JSON.stringify(subscription));
       }
@@ -145,6 +199,7 @@ export const createLiveStatusClient = (
       try {
         payload = JSON.parse(String(message.data));
       } catch {
+        log.warn('dropped a live status frame that was not JSON');
         return;
       }
 
@@ -158,21 +213,32 @@ export const createLiveStatusClient = (
       }
 
       // Non-adLibs events are ignored so the previous snapshot stays.
+      // A bad adLibs payload is already warned about in the parser.
       const nextSnapshot = parseAdLibsMessage(payload);
       if (!nextSnapshot) {
+        const event = frameEvent(payload);
+        if (event !== 'adLibs') {
+          log.debug({ event }, 'ignored live status frame');
+        }
         return;
       }
 
       // A gateway that answered the subscription is healthy, so the next drop
       // starts the wait sequence over. Resetting on open instead would hold
       // the delay at 1s forever while the gateway restart-loops.
+      if (reconnectAttempt > 0) {
+        log.info(
+          { attempt: reconnectAttempt },
+          'gateway answered; reconnect backoff reset'
+        );
+      }
       reconnectAttempt = 0;
       snapshot = nextSnapshot;
       notify();
     });
 
     socket.addEventListener('close', () => {
-      dropAndRetry();
+      dropAndRetry('socket closed');
     });
   };
 

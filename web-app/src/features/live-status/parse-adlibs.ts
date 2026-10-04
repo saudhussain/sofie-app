@@ -1,3 +1,4 @@
+import { logger } from '@/shared/lib/logger';
 import { isJsonObject } from '@/shared/lib/safe-json';
 import type {
   AdLib,
@@ -5,6 +6,8 @@ import type {
   AdLibPublicData,
   AdLibsSnapshot,
 } from './types';
+
+const log = logger.child({ module: 'adlibs-parser' });
 
 // A bad action type is skipped. The adlib itself can still be shown.
 const parseActionTypes = (value: unknown): AdLibBase['actionType'] => {
@@ -106,24 +109,39 @@ export const parseAdLibsMessage = (value: unknown): AdLibsSnapshot | null => {
     return null;
   }
   if (!(Array.isArray(value.adLibs) && Array.isArray(value.globalAdLibs))) {
+    log.warn('adLibs message is missing its lists');
     return null;
   }
 
   const { rundownPlaylistId } = value;
   // Null means no rundown is active. Any other type is a payload we cannot trust.
   if (!(typeof rundownPlaylistId === 'string' || rundownPlaylistId === null)) {
+    log.warn('adLibs message has an unusable rundown id');
     return null;
   }
 
+  const adLibs = value.adLibs.flatMap((entry) => {
+    const partAdLib = parsePartAdLib(entry);
+    return partAdLib ? [partAdLib] : [];
+  });
+  const globalAdLibs = value.globalAdLibs.flatMap((entry) => {
+    const globalAdLib = parseAdLibBase(entry);
+    return globalAdLib ? [globalAdLib] : [];
+  });
+  const droppedAdLibs = value.adLibs.length - adLibs.length;
+  const droppedGlobalAdLibs = value.globalAdLibs.length - globalAdLibs.length;
+  // The rest of the message is still shown. The count is the only clue
+  // that a button never reached the board.
+  if (droppedAdLibs > 0 || droppedGlobalAdLibs > 0) {
+    log.warn(
+      { droppedAdLibs, droppedGlobalAdLibs },
+      'dropped adlibs missing an id, a name, or a segment'
+    );
+  }
+
   return {
-    adLibs: value.adLibs.flatMap((entry) => {
-      const partAdLib = parsePartAdLib(entry);
-      return partAdLib ? [partAdLib] : [];
-    }),
-    globalAdLibs: value.globalAdLibs.flatMap((entry) => {
-      const globalAdLib = parseAdLibBase(entry);
-      return globalAdLib ? [globalAdLib] : [];
-    }),
+    adLibs,
+    globalAdLibs,
     rundownPlaylistId,
   };
 };
