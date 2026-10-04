@@ -11,6 +11,14 @@ type PressableProps = {
   onFire?: () => void;
 };
 
+/**
+ * Press feedback for a control that is idle. The browser's own tap highlight
+ * is off, so every pressable has to draw its own, or a tap looks ignored
+ * until the request answers.
+ */
+export const PRESS_FRAME =
+  'active:border-cue active:shadow-[0_0_8px_var(--color-cue)]';
+
 const buttonClass = (className: string | undefined): string =>
   ['touch-manipulation select-none', className]
     .filter((part) => part && part.length > 0)

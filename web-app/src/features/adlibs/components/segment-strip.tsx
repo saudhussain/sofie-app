@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Pressable } from '@/shared/ui/pressable';
+import { PRESS_FRAME, Pressable } from '@/shared/ui/pressable';
 import type { SegmentTab } from '../model/segments';
 
 const roleLabel: Partial<Record<SegmentTab['role'], string>> = {
@@ -32,7 +32,7 @@ function SegmentChip({
       <Pressable
         aria-current={tab.role === 'current' ? 'true' : undefined}
         aria-pressed={selected}
-        className={`flex min-h-12 max-w-44 flex-col justify-center border px-3 text-left ${
+        className={`flex min-h-12 max-w-44 flex-col justify-center border px-3 text-left ${PRESS_FRAME} ${
           tab.role === 'current'
             ? 'border-ready text-ready'
             : 'border-line text-ink'

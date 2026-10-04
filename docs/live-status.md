@@ -43,6 +43,8 @@ The status lamp stays as before:
 | Rundown not active | The gateway is up and `rundownPlaylistId` is `null` |
 | Connected | The gateway is up and a rundown is active |
 
+That wait sequence restarts only once the gateway has answered with an `adLibs` message, not merely when the socket opens. A gateway that is still starting up accepts the socket and drops it again, so an open on its own proves nothing and would otherwise hold the retry at 1s forever.
+
 While the gateway is down or the rundown is inactive, both panels stay empty. Buttons from the last good message are not kept on screen.
 
 When a rundown is active, the wide panel shows one segment at a time, grouped by layer. The narrow panel shows every global adlib, independent of the selected segment, grouped the same way.

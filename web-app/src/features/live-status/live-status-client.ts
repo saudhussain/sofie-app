@@ -128,8 +128,9 @@ export const createLiveStatusClient = (
     socket = nextSocket;
 
     nextSocket.addEventListener('open', () => {
-      // A good open starts the backoff over. Stay on connecting until adLibs.
-      reconnectAttempt = 0;
+      // The backoff is not reset here. A gateway that is still starting up
+      // accepts the socket and drops it again, so an open on its own proves
+      // nothing. Stay on connecting until adLibs arrives.
       link = 'open';
       notify();
       for (const subscription of LIVE_STATUS_SUBSCRIPTIONS) {
@@ -161,6 +162,10 @@ export const createLiveStatusClient = (
         return;
       }
 
+      // A gateway that answered the subscription is healthy, so the next drop
+      // starts the wait sequence over. Resetting on open instead would hold
+      // the delay at 1s forever while the gateway restart-loops.
+      reconnectAttempt = 0;
       snapshot = nextSnapshot;
       notify();
     });

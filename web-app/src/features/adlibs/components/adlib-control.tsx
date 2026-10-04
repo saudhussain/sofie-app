@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable } from '@/shared/ui/pressable';
+import { PRESS_FRAME, Pressable } from '@/shared/ui/pressable';
 import {
   type FireStatus,
   type FireTone,
@@ -83,7 +83,6 @@ function DetailLine({
   if (statusText) {
     return (
       <p
-        aria-live="polite"
         className={`truncate font-mono text-[11px] uppercase tracking-[0.14em] ${fireToneClass[tone ?? 'standby'].text}`}
       >
         {statusText}
@@ -134,16 +133,17 @@ function Face({
   );
 }
 
-/** A fire tone replaces the idle border. Danger text stays only while idle. */
+/**
+ * A fire tone replaces the idle border. Danger text stays only while idle.
+ * Every idle control flashes the cue frame on press, danger ones included:
+ * the tap has to read as received before the request comes back.
+ */
 const borderFor = (danger: boolean, status: FireStatus): string => {
   const tone = fireStatusTone(status);
   if (tone) {
     return fireToneClass[tone].border;
   }
-  if (danger) {
-    return 'border-danger';
-  }
-  return 'border-line active:border-cue active:shadow-[0_0_8px_var(--color-cue)]';
+  return `${danger ? 'border-danger' : 'border-line'} ${PRESS_FRAME}`;
 };
 
 const zoneClass = (danger: boolean, compact: boolean, status: FireStatus) =>
