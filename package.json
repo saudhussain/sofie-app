@@ -12,6 +12,7 @@
     "lint": "biome ci .",
     "preview": "npm run preview -w web-app",
     "storybook": "npm run dev -w storybook-app",
+    "test": "npm run test -w web-app",
     "typecheck": "npm run typecheck -w web-app && npm run typecheck -w storybook-app"
   }
 }

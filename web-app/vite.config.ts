@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
@@ -18,5 +19,8 @@ export default defineConfig({
         target: 'http://localhost:3000',
       },
     },
+  },
+  test: {
+    include: ['src/**/__tests__/**/*.test.ts'],
   },
 });
