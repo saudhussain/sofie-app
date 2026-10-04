@@ -8,22 +8,20 @@ import type {
   PlaylistPosition,
 } from './types';
 
-export type SocketLink = 'connecting' | 'gateway-down' | 'open';
-
 /**
- * Lamp state from the socket link and the last good payloads.
- * Gateway down wins. An open socket without an adLibs message stays
- * connecting. A null playlist id means no rundown is active.
+ * Lamp state from whether the gateway is down and the last good payloads.
+ * Gateway down wins. No adLibs message yet stays connecting.
+ * A null playlist id means no rundown is active.
  */
 const deriveLiveStatus = (
-  link: SocketLink,
+  gatewayDown: boolean,
   snapshot: AdLibsSnapshot | null,
   playlist: PlaylistPosition | null
 ): ConnectionState => {
-  if (link === 'gateway-down') {
+  if (gatewayDown) {
     return { kind: 'gateway-down' };
   }
-  if (link !== 'open' || !snapshot) {
+  if (!snapshot) {
     return { kind: 'connecting' };
   }
   if (snapshot.rundownPlaylistId === null) {
@@ -41,9 +39,10 @@ const deriveLiveStatus = (
 
 /**
  * Skips the listener fan-out when the lamp and the lists are unchanged.
- * Opening the socket before the first `adLibs` message stays "connecting",
- * so that open does not render twice. A newly parsed snapshot is a new
- * array, so an `adLibs` or `activePlaylist` push always reaches the board.
+ * A playlist push before the first `adLibs` message stays "connecting".
+ * A newly parsed adlib list is a new array, so that push always reaches
+ * the board. Segment ids are compared by value, so a playlist push that
+ * keeps the same segments does not.
  */
 const sameConnection = (
   left: ConnectionState,
@@ -81,17 +80,16 @@ export const createLiveStatusClient = (
   url: string = LIVE_STATUS_URL
 ): LiveStatusClient => {
   const listeners = new Set<() => void>();
-  let socket: WebSocket | null = null;
   let reconnectAttempt = 0;
-  let stopped = true;
-  let link: SocketLink = 'connecting';
+  let started = false;
+  let gatewayDown = false;
   let snapshot: AdLibsSnapshot | null = null;
   let playlist: PlaylistPosition | null = null;
   let derived: ConnectionState = { kind: 'connecting' };
 
   /** Recompute the lamp and lists, then tell React only when they differ. */
   const notify = () => {
-    const next = deriveLiveStatus(link, snapshot, playlist);
+    const next = deriveLiveStatus(gatewayDown, snapshot, playlist);
     if (sameConnection(derived, next)) {
       return;
     }
@@ -101,44 +99,47 @@ export const createLiveStatusClient = (
     }
   };
 
-  const connect = () => {
-    if (stopped) {
-      return;
-    }
-
-    let nextSocket: WebSocket;
-    // `new WebSocket` throws when the URL is invalid. Treat that like a drop:
-    // clear the lists, show Gateway down, and try again. Unlike a normal
-    // close, this retry calls connect() directly, so the lamp stays down for
-    // the wait instead of flipping to Connecting when the timer fires.
-    try {
-      nextSocket = new WebSocket(url);
-    } catch {
-      link = 'gateway-down';
-      snapshot = null;
-      playlist = null;
+  /**
+   * The gateway stopped speaking. Clear the lists so the panels do not keep
+   * buttons from it, and show Gateway down for the wait. Connecting is shown
+   * only when the retry starts.
+   * An invalid URL throws before a socket exists and lands here too. The
+   * retry then sets Connecting and throws again in the same turn, so React
+   * paints Gateway down.
+   */
+  const dropAndRetry = () => {
+    gatewayDown = true;
+    snapshot = null;
+    playlist = null;
+    notify();
+    window.setTimeout(() => {
+      gatewayDown = false;
       notify();
-      window.setTimeout(() => {
-        connect();
-      }, reconnectDelay(reconnectAttempt));
-      reconnectAttempt += 1;
+      connect();
+    }, reconnectDelay(reconnectAttempt));
+    reconnectAttempt += 1;
+  };
+
+  const connect = () => {
+    let socket: WebSocket;
+    // `new WebSocket` throws when the URL is invalid.
+    try {
+      socket = new WebSocket(url);
+    } catch {
+      dropAndRetry();
       return;
     }
 
-    socket = nextSocket;
-
-    nextSocket.addEventListener('open', () => {
+    socket.addEventListener('open', () => {
       // The backoff is not reset here. A gateway that is still starting up
       // accepts the socket and drops it again, so an open on its own proves
       // nothing. Stay on connecting until adLibs arrives.
-      link = 'open';
-      notify();
       for (const subscription of LIVE_STATUS_SUBSCRIPTIONS) {
-        nextSocket.send(JSON.stringify(subscription));
+        socket.send(JSON.stringify(subscription));
       }
     });
 
-    nextSocket.addEventListener('message', (message) => {
+    socket.addEventListener('message', (message) => {
       let payload: unknown;
       // One bad frame must not clear the lists or tear down the socket.
       try {
@@ -170,43 +171,9 @@ export const createLiveStatusClient = (
       notify();
     });
 
-    nextSocket.addEventListener('close', () => {
-      // A socket we already replaced, or a stop, must not start a retry.
-      // Lists are cleared on purpose: the panels must not keep buttons from
-      // a gateway that is no longer speaking. Connecting is shown only when
-      // this retry actually starts, so the wait itself reads Gateway down.
-      if (stopped || socket !== nextSocket) {
-        return;
-      }
-
-      // Down while we wait. Connecting only when this retry actually starts.
-      link = 'gateway-down';
-      snapshot = null;
-      playlist = null;
-      notify();
-      window.setTimeout(() => {
-        if (stopped) {
-          return;
-        }
-        link = 'connecting';
-        notify();
-        connect();
-      }, reconnectDelay(reconnectAttempt));
-      reconnectAttempt += 1;
+    socket.addEventListener('close', () => {
+      dropAndRetry();
     });
-  };
-
-  const start = () => {
-    if (!stopped) {
-      return;
-    }
-    stopped = false;
-    reconnectAttempt = 0;
-    link = 'connecting';
-    snapshot = null;
-    playlist = null;
-    notify();
-    connect();
   };
 
   /**
@@ -215,10 +182,10 @@ export const createLiveStatusClient = (
    * closes the socket when that page goes away.
    */
   const subscribe = (listener: () => void): (() => void) => {
-    const shouldStart = listeners.size === 0;
     listeners.add(listener);
-    if (shouldStart) {
-      start();
+    if (!started) {
+      started = true;
+      connect();
     }
     return () => {
       listeners.delete(listener);
