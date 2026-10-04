@@ -1,6 +1,7 @@
 /**
- * One way to fire an adlib.
- * `label` is what the operator reads. `name` is the action name from the gateway.
+ * One way to fire an adlib, as the gateway sent it.
+ * `label` is what the operator reads. `name` is sent as `actionType` when
+ * the tap chose this action and no other.
  */
 export type AdLibActionType = {
   label: string;

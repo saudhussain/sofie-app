@@ -6,6 +6,7 @@ export type FireStatus = 'idle' | 'busy' | 'success' | 'error';
 
 export type FireTone = 'danger' | 'ready' | 'standby';
 
+/** How long "Sent" stays on the control before its own label returns. */
 const SUCCESS_VISIBLE_MS = 1200;
 
 /**
@@ -101,6 +102,7 @@ export const useAdLibFire = () => {
       window.clearTimeout(clearTimer.current);
       clearTimer.current = undefined;
 
+      // The connection can drop between render and the tap. Do not post.
       if (playlistId === null) {
         apply('error', 'Not on air');
         return;
@@ -136,6 +138,7 @@ export const useAdLibFire = () => {
             }, SUCCESS_VISIBLE_MS);
             return;
           }
+          // 412 is "Not on air". Every other result, including a timeout, is "Failed".
           apply(
             'error',
             result.kind === 'not-on-air' ? 'Not on air' : 'Failed'

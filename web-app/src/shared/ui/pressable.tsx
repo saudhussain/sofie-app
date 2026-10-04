@@ -18,8 +18,11 @@ const buttonClass = (className: string | undefined): string =>
     .join(' ');
 
 /**
- * Plain button. A click calls onFire. The caller owns the border,
- * including the press highlight and the Sending / Sent colors.
+ * The only clickable control on the board.
+ * `touch-manipulation` drops the browser's tap delay. The caller decides what
+ * a tap means: a fire hook posts an adlib, a chip only changes local selection.
+ * A second tap while a request is in flight is ignored by that hook, not here.
+ * `disabled` is for a chip whose action is missing from the current adlib.
  */
 export const Pressable = ({
   'aria-busy': ariaBusy,
@@ -69,7 +72,11 @@ const chipClass = (
   return `border-line text-ink active:border-cue ${selected}`;
 };
 
-/** Compact labeled button. A click does nothing until the caller passes onFire. */
+/**
+ * Small labeled button for DVE mode, IP, and a routing source.
+ * Without `onFire` the chip stays visible and a tap does nothing, which is
+ * how a source the selected mode does not list stays on screen but inert.
+ */
 export const Chip = ({
   busy = false,
   disabled,

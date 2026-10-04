@@ -1,6 +1,10 @@
 import type { AdLib } from '@/features/live-status/types';
 import type { AdaptedAdLib } from '../types';
 
+/**
+ * Source layers drawn first inside a segment, in this order.
+ * Any other layer still appears, after these, in the order it was first seen.
+ */
 const LOCAL_LAYER_ORDER = ['Tema', 'Super', 'Sted', 'Grafikk'] as const;
 
 type IndexedAdLib = AdaptedAdLib<AdLib> & {
@@ -13,6 +17,13 @@ type SegmentGroup = {
   label: string;
 };
 
+/**
+ * Where a segment sits relative to what Sofie is playing.
+ * `current` is on air and keeps the On air marker.
+ * `next` is the playlist's next segment, or the following one in the rundown.
+ * `previous` is the segment just before on air. It has no marker of its own.
+ * `other` is the rest, and every tab when the on-air segment id is unknown.
+ */
 type SegmentTabRole = 'current' | 'next' | 'other' | 'previous';
 
 export type SegmentTab = {
@@ -32,6 +43,7 @@ const segmentIdOf = (item: AdaptedAdLib<AdLib>): string | null =>
 
 const knownLayers = new Set<string>(LOCAL_LAYER_ORDER);
 
+/** The segment's Tema title, or "Segment N" when that layer has no title. */
 const segmentLabel = (items: AdaptedAdLib<AdLib>[], index: number): string => {
   const tema = items.find((item) => item.group === 'Tema' && item.title);
   return tema?.title ?? `Segment ${index + 1}`;
@@ -142,7 +154,8 @@ export const buildSegmentStrip = (
     };
   }
 
-  // The on-air segment can be missing from adLibs. Keep a tab for it anyway.
+  // The on-air segment can be missing from adLibs. Keep an empty tab for it
+  // so the strip still shows where Sofie is, even with nothing to press.
   const listed = segments.some((segment) => segment.id === currentSegmentId)
     ? segments
     : [{ id: currentSegmentId, items: [], label: 'On air' }, ...segments];

@@ -39,6 +39,12 @@ export const deriveLiveStatus = (
   };
 };
 
+/**
+ * Skips the listener fan-out when the lamp and the lists are unchanged.
+ * Opening the socket before the first `adLibs` message stays "connecting",
+ * so that open does not render twice. A newly parsed snapshot is a new
+ * array, so an `adLibs` or `activePlaylist` push always reaches the board.
+ */
 const sameConnection = (
   left: ConnectionState,
   right: ConnectionState
@@ -65,6 +71,12 @@ type LiveStatusClient = {
   subscribe: (listener: () => void) => () => void;
 };
 
+/**
+ * One websocket for the whole board.
+ * Subscribes to `adLibs` and `activePlaylist`, keeps the last good payloads,
+ * and derives the connection state the panels read. The first subscriber
+ * opens the socket. The last one closes it on the next turn.
+ */
 export const createLiveStatusClient = (
   url: string = LIVE_STATUS_URL
 ): LiveStatusClient => {
@@ -79,6 +91,7 @@ export const createLiveStatusClient = (
   let playlist: PlaylistPosition | null = null;
   let derived: ConnectionState = { kind: 'connecting' };
 
+  /** Recompute the lamp and lists, then tell React only when they differ. */
   const notify = () => {
     const next = deriveLiveStatus(link, snapshot, playlist);
     if (sameConnection(derived, next)) {
@@ -96,8 +109,10 @@ export const createLiveStatusClient = (
     }
 
     let nextSocket: WebSocket;
-    // The constructor throws on an invalid URL. Retry instead of crashing.
-    // NOTE: unclear why this path skips the "connecting" lamp a normal close uses.
+    // `new WebSocket` throws when the URL is invalid. Treat that like a drop:
+    // clear the lists, show Gateway down, and try again. Unlike a normal
+    // close, this retry calls connect() directly, so the lamp stays down for
+    // the wait instead of flipping to Connecting when the timer fires.
     try {
       nextSocket = new WebSocket(url);
     } catch {
@@ -133,6 +148,8 @@ export const createLiveStatusClient = (
         return;
       }
 
+      // A frame is one event. Playlist is checked first, then adlibs.
+      // Anything else, including the subscribe ack, leaves both payloads.
       const nextPlaylist = parseActivePlaylistMessage(payload);
       if (nextPlaylist) {
         playlist = nextPlaylist;
@@ -152,6 +169,9 @@ export const createLiveStatusClient = (
 
     nextSocket.addEventListener('close', () => {
       // A socket we already replaced, or a stop, must not start a retry.
+      // Lists are cleared on purpose: the panels must not keep buttons from
+      // a gateway that is no longer speaking. Connecting is shown only when
+      // this retry actually starts, so the wait itself reads Gateway down.
       if (stopped || socket !== nextSocket) {
         return;
       }
@@ -196,6 +216,11 @@ export const createLiveStatusClient = (
     socket = null;
   };
 
+  /**
+   * The first listener opens the socket. The last one does not close it in
+   * this turn: React Strict Mode unsubscribes and subscribes again before
+   * the timeout, and the timeout then sees a listener and leaves the socket up.
+   */
   const subscribe = (listener: () => void): (() => void) => {
     window.clearTimeout(stopTimer);
     stopTimer = undefined;
@@ -222,4 +247,5 @@ export const createLiveStatusClient = (
   return { getSnapshot, start, stop, subscribe };
 };
 
+/** Shared by every `useLiveStatus` call so the board has one socket. */
 export const liveStatusClient = createLiveStatusClient();

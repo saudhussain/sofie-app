@@ -1,5 +1,10 @@
 import type { ReactNode } from 'react';
 
+/**
+ * One column of the board.
+ * `count` is how many gateway adlibs that column is showing. Callers omit it
+ * while the panel is blocked, so a stale total is not left beside the waiting copy.
+ */
 export const PanelShell = ({
   children,
   count,
@@ -26,6 +31,7 @@ export const PanelShell = ({
   </section>
 );
 
+/** Heading for one layer or global section. `count` is the adlibs under it. */
 export const PanelSubheading = ({
   count,
   title,
@@ -39,6 +45,7 @@ export const PanelSubheading = ({
   </h3>
 );
 
+/** The sentence a panel shows when it has no buttons to press. */
 export const EmptyLine = ({ message }: { message: string }) => (
   <p className="px-5 py-6 font-mono text-muted text-sm">{message}</p>
 );

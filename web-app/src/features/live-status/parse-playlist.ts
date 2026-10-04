@@ -1,6 +1,7 @@
 import { isJsonObject } from '@/shared/lib/safe-json';
 import type { PlaylistPosition } from './types';
 
+/** A part object contributes its segment id. Null, or any other shape, does not. */
 const readSegmentId = (part: unknown): string | null => {
   if (!isJsonObject(part) || typeof part.segmentId !== 'string') {
     return null;

@@ -15,6 +15,7 @@ type NoraContent = {
   secondaryText?: string;
 };
 
+/** A non-empty string. Blank and non-strings are treated as missing. */
 const readString = (value: unknown): string | undefined => {
   if (typeof value !== 'string') {
     return undefined;
@@ -58,6 +59,11 @@ const readPicture = (value: unknown): NoraPicture | undefined => {
   };
 };
 
+/**
+ * Nora stores a JSON string on `publicData.noraPayload`.
+ * A payload that is missing, not JSON, or has no `content` object leaves
+ * the title to the packed gateway name.
+ */
 const readNoraContent = (payload: string | undefined): NoraContent | null => {
   if (!payload) {
     return null;
@@ -93,7 +99,14 @@ const groupOf = (sourceLayer: string): string => {
   return sourceLayer;
 };
 
-/** Turns one gateway adlib into the fields the board draws. */
+/**
+ * Display fields for one gateway adlib.
+ * The title prefers a Nora picture title, then Nora main text, then the
+ * packed gateway name. A subtitle is Nora secondary text, then the picture
+ * credit or creators. The packed-name subtitle is used only when Nora did
+ * not already supply a title, so a leftover "; variant" piece is not shown
+ * under a Nora title. `group` is the source layer the local panel buckets by.
+ */
 export const adaptAdLib = <T extends AdLibBase>(raw: T): AdaptedAdLib<T> => {
   const content = readNoraContent(raw.publicData?.noraPayload);
   const fallback = titleFromName(raw.name);

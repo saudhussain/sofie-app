@@ -4,9 +4,11 @@ import { StatusBar } from '@/features/live-status/components/status-bar';
 import { useLiveStatus } from '@/features/live-status/hooks/use-live-status';
 
 /**
- * Landscape touch screen. Part adlibs take the wide column.
- * Global controls stay in the narrow column for the whole rundown.
- * Both panels read lists from the same connection. A tap posts that adlib.
+ * Landscape touch screen.
+ * The wide column is the part adlibs for one segment. The narrow column is
+ * every global adlib, and it does not change when a segment tab is selected.
+ * Both columns read the same connection snapshot. A control tap posts that
+ * adlib. A segment, DVE mode, or IP tap only changes what is drawn.
  */
 export const App = () => {
   const connection = useLiveStatus();

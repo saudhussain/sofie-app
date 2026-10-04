@@ -1,4 +1,7 @@
-// typeof null is "object", so null has to be rejected before any field is read.
+/**
+ * Gateway frames and Nora payloads arrive as `unknown`.
+ * `typeof null` is `"object"`, so null is rejected before any field is read.
+ */
 export const isJsonObject = (
   value: unknown
 ): value is Record<string, unknown> =>

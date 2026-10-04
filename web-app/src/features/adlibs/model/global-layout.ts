@@ -66,11 +66,18 @@ export type GlobalSection =
 const hasTag = (item: AdaptedAdLib, tag: string): boolean =>
   item.raw.tags.includes(tag);
 
+/** True when the adlib offers toggle, in, and out. Those become three zones. */
 const isModeItem = (item: AdaptedAdLib): boolean => {
   const names = new Set(item.actions.map((action) => action.name));
   return globalLayout.modeActions.every((name) => names.has(name));
 };
 
+/**
+ * Puts a sound feed beside its video-only partner.
+ * The silent feed is named like the sound feed plus a trailing "v".
+ * A silent feed with no partner, and any item that has neither tag, is still
+ * shown as a single button so it cannot disappear.
+ */
 const pairRemotes = (items: AdaptedAdLib[]): RemotePair[] => {
   const silentByName = new Map<string, AdaptedAdLib>();
   const sound: AdaptedAdLib[] = [];
@@ -222,6 +229,7 @@ export const layoutGlobalAdLibs = (items: AdaptedAdLib[]): GlobalSection[] => {
 
   const sections: GlobalSection[] = [];
 
+  // Camera numbers live in the gateway name, so they sort numerically.
   const cameras = take(
     (item) => item.raw.sourceLayer === globalLayout.cameras.sourceLayer
   ).sort((left, right) => Number(left.raw.name) - Number(right.raw.name));
@@ -233,6 +241,7 @@ export const layoutGlobalAdLibs = (items: AdaptedAdLib[]): GlobalSection[] => {
     });
   }
 
+  // DIR feeds tagged with or without audio. Pairing happens after the take.
   const remotes = pairRemotes(
     take(
       (item) =>
@@ -249,6 +258,7 @@ export const layoutGlobalAdLibs = (items: AdaptedAdLib[]): GlobalSection[] => {
     });
   }
 
+  // One button per layout. These post the adlib, unlike the routing grid below.
   const layouts = take((item) => hasTag(item, globalLayout.dveLayouts.tag));
   if (layouts.length > 0) {
     sections.push({
@@ -258,6 +268,8 @@ export const layoutGlobalAdLibs = (items: AdaptedAdLib[]): GlobalSection[] => {
     });
   }
 
+  // One adlib per mode (Set, Next, Current). The grid picks the mode locally
+  // and posts a source action on that adlib.
   const routingItems = take(
     (item) =>
       hasTag(item, globalLayout.dveRouting.tag) &&
@@ -272,6 +284,7 @@ export const layoutGlobalAdLibs = (items: AdaptedAdLib[]): GlobalSection[] => {
     });
   }
 
+  // Taken before up/down. These items are also tagged `up`.
   const modeItems = take(isModeItem);
   if (modeItems.length > 0) {
     sections.push({ items: modeItems, kind: 'modes', title: 'Modes' });
@@ -290,10 +303,12 @@ export const layoutGlobalAdLibs = (items: AdaptedAdLib[]): GlobalSection[] => {
     sections.push({ kind: 'pairs', pairs, title: globalLayout.pairs.title });
   }
 
+  // Taken now so Other cannot swallow them. Drawn later, in red, after Exit.
   const clearItems = take((item) =>
     globalLayout.clearTags.some((tag) => hasTag(item, tag))
   );
 
+  // Named tags before the invalid layer, so a screen is not filed under Control.
   for (const group of globalLayout.namedGroups) {
     const grouped = take((item) => hasTag(item, group.tag));
     if (grouped.length > 0) {
@@ -306,7 +321,9 @@ export const layoutGlobalAdLibs = (items: AdaptedAdLib[]): GlobalSection[] => {
     }
   }
 
+  // Taken before Other, or this button would land there.
   const exitItems = take((item) => hasTag(item, 'exit-bts-dve'));
+  // Everything still unused except the invalid layer, which is Control below.
   const other = take(
     (item) => item.raw.sourceLayer !== globalLayout.control.sourceLayer
   );
@@ -336,6 +353,7 @@ export const layoutGlobalAdLibs = (items: AdaptedAdLib[]): GlobalSection[] => {
     });
   }
 
+  // Last on purpose. These are sourceLayer "invalid", not a real output.
   const control = take(
     (item) => item.raw.sourceLayer === globalLayout.control.sourceLayer
   );

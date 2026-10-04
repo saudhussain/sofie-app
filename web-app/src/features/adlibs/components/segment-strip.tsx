@@ -7,6 +7,12 @@ const roleLabel: Partial<Record<SegmentTab['role'], string>> = {
   next: 'Next',
 };
 
+/**
+ * One segment tab.
+ * `aria-current` marks the segment Sofie has on air. `aria-pressed` marks
+ * the tab whose buttons are open. Those can be different segments.
+ * The tap only selects locally. It does not Take in Sofie.
+ */
 function SegmentChip({
   onSelect,
   selected,

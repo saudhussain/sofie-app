@@ -33,7 +33,12 @@ type StatusBarProps = {
   connection: ConnectionState;
 };
 
-/** Connection lamp. The text is the accessible name. The colored dot is decorative. */
+/**
+ * Connection lamp. The text is the accessible name. The colored dot is decorative.
+ * Connecting covers the socket opening and the wait for the first `adLibs`
+ * message. Gateway down is a closed socket. Rundown not active is a live
+ * socket whose playlist id is null. Connected means both are ready.
+ */
 export const StatusBar = ({ connection: { kind } }: StatusBarProps) => {
   const status = connectionStatus[kind];
   return (

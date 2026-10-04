@@ -16,8 +16,11 @@ import { AdlibControl } from './adlib-control';
 import { SegmentStrip } from './segment-strip';
 
 /**
- * Part adlibs for one segment. The strip follows rundown order.
- * Only the selected segment's buttons are rendered.
+ * The wide column: part adlibs, one segment at a time.
+ * Tabs follow rundown order. `pinnedId` is a tab the operator opened. It is
+ * cleared when Sofie changes the on-air segment, so the board follows a Take
+ * unless the operator has picked a tab since that Take. Only the selected
+ * segment's buttons are rendered, grouped by source layer.
  */
 export const LocalPanel = ({ connection }: { connection: ConnectionState }) => {
   const blocked = blockedPanelMessage(connection);
@@ -43,6 +46,7 @@ export const LocalPanel = ({ connection }: { connection: ConnectionState }) => {
     setPinnedId(null);
   }, [currentSegmentId]);
 
+  // No pin means the on-air segment, or the first segment when that is unknown.
   const selectedId = pinnedId ?? strip.defaultSegmentId;
   const selected =
     segments.find((segment) => segment.id === selectedId)?.items ?? [];
@@ -54,6 +58,7 @@ export const LocalPanel = ({ connection }: { connection: ConnectionState }) => {
         <EmptyLine message={blocked} />
       ) : (
         <>
+          {/* The playlist never named an on-air segment, so every tab is manual. */}
           {strip.currentKnown ? null : (
             <p className="px-5 pt-3 font-mono text-[11px] text-standby uppercase tracking-[0.14em]">
               Current segment is unknown.

@@ -1,5 +1,10 @@
 import type { AdLibBase } from '@/features/live-status/types';
 
+/**
+ * One way to fire this adlib.
+ * `label` is what the operator reads. `name` is sent as `actionType` when
+ * the tap chose this action. Several of these become separate zones.
+ */
 type AdaptedAction = {
   label: string;
   name: string;

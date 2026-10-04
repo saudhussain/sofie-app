@@ -19,6 +19,7 @@ type AdlibControlProps = {
   item: ControlItem;
 };
 
+/** Second line while idle. Credit wins over the packed-name subtitle. */
 const detailOf = (item: ControlItem): string | undefined =>
   item.credit ?? item.subtitle;
 
@@ -70,6 +71,11 @@ const toneClass: Record<FireTone, string> = {
   standby: 'text-standby',
 };
 
+/**
+ * The second line of a control.
+ * A fire status replaces the credit or subtitle for as long as that status
+ * shows. Idle with neither credit nor subtitle draws nothing.
+ */
 function DetailLine({
   detail,
   statusText,
@@ -113,6 +119,7 @@ function Face({
         <DetailLine detail={detail} statusText={statusText} tone={tone} />
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">
+        {/* Repeated titles in one segment are numbered in gateway order. */}
         {item.duplicateIndex ? (
           <span className="font-mono text-[11px] text-cue">
             #{item.duplicateIndex}
@@ -182,6 +189,10 @@ function ActionZone({
   );
 }
 
+/**
+ * Header plus one zone per action. The header does not post.
+ * Each zone posts this adlib with that action's name as `actionType`.
+ */
 function SplitAdlib({
   compact = false,
   danger = false,
@@ -213,6 +224,11 @@ function SplitAdlib({
   );
 }
 
+/**
+ * The whole face is the button.
+ * One action is sent as `actionType`. No actions, as on Clear All Graphics,
+ * send the id alone. Status text replaces the action label while it shows.
+ */
 function SingleAdlib({
   compact = false,
   danger = false,
@@ -262,6 +278,7 @@ export const AdlibControl = (props: AdlibControlProps) =>
     <SingleAdlib {...props} />
   );
 
+/** Non-pressable header of a split control. The zones underneath post. */
 function PreviewFace({ item }: { item: ControlItem }) {
   return (
     <div className="relative min-w-0 pl-3">

@@ -14,9 +14,12 @@ const EXECUTE_ADLIB_TIMEOUT_MS = 10_000;
 
 /**
  * POST /api/v1.0/playlists/{playlistId}/execute-adlib
- * Body is `adLibId` and, when the tap chose an action, `actionType`.
- * `adLibOptions` is not sent. Network errors, timeouts, and non-2xx
- * responses become a result. This function does not throw to the caller.
+ * Body is `adLibId` and, when the tap chose one action, `actionType`.
+ * `adLibOptions` is not sent.
+ * 412 is the precondition Sofie returns when the rundown is not on air.
+ * The caller abort and the 10s timer share one controller, so either one
+ * ends the request. Network errors, timeouts, and other non-2xx responses
+ * become `{ kind: 'error' }`. This function does not throw to the caller.
  */
 export const executeAdLib = async ({
   actionType,
@@ -24,11 +27,13 @@ export const executeAdLib = async ({
   playlistId,
   signal,
 }: ExecuteAdLibInput): Promise<ExecuteAdLibResult> => {
+  // One controller for the caller's abort and for the timeout below.
   const controller = new AbortController();
   const onAbort = () => {
     controller.abort();
   };
   if (signal) {
+    // The control unmounted before this call. Do not open the request.
     if (signal.aborted) {
       return { kind: 'error' };
     }

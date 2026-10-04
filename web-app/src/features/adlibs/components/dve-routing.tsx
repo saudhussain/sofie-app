@@ -8,6 +8,10 @@ import {
 import { globalLayout, type RoutingModes } from '../model/global-layout';
 import type { AdaptedAdLib } from '../types';
 
+/**
+ * The grid is fixed. A cell is enabled only when the selected mode's adlib
+ * lists that action name, so a source Sofie did not offer stays visible and inert.
+ */
 const IPS = [1, 2, 3, 4] as const;
 const CAMERAS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 const REMOTES = [1, 2, 3, 4, 5, 6] as const;
@@ -19,6 +23,7 @@ const routingActionName = (
   source: number
 ): string => `ip${ip} ${kind},${source}`;
 
+/** Chooses which routing adlib the source cells will post. Does not fire. */
 function ModeChip({
   disabled,
   label,
@@ -40,6 +45,7 @@ function ModeChip({
   );
 }
 
+/** Chooses which IP the source names are built for. Does not fire. */
 function IpChip({
   onSelect,
   pressed,
@@ -132,6 +138,8 @@ export const DveRouting = ({ modes }: { modes: RoutingModes }) => {
   const available = globalLayout.dveModes.filter((mode) => modes[mode.tag]);
   const [modeTag, setModeTag] = useState(available[0]?.tag ?? 'auto');
   const [ip, setIp] = useState<(typeof IPS)[number]>(1);
+  // A new snapshot can drop the mode that was selected. Fall back to the
+  // first mode that is still present. Mode and IP never leave this component.
   const selected = available.some((mode) => mode.tag === modeTag)
     ? modeTag
     : (available[0]?.tag ?? 'auto');

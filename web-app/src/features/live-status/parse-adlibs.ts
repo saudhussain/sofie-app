@@ -26,11 +26,17 @@ const parseActionTypes = (value: unknown): AdLibBase['actionType'] => {
   });
 };
 
+/** Non-strings are dropped. A missing tags field is an empty list, not a reject. */
 const parseTags = (value: unknown): string[] =>
   Array.isArray(value)
     ? value.filter((tag): tag is string => typeof tag === 'string')
     : [];
 
+/**
+ * Keeps only the Nora fields the adapter displays.
+ * Other publicData keys are ignored. No payload and no duration means the
+ * field is omitted, and the adapter falls back to the gateway name.
+ */
 const parsePublicData = (value: unknown): AdLibPublicData | undefined => {
   if (!isJsonObject(value)) {
     return undefined;
@@ -74,6 +80,10 @@ const parseAdLibBase = (value: unknown): AdLibBase | null => {
   };
 };
 
+/**
+ * A part adlib must name its segment and part. Global adlibs do not, so they
+ * are parsed with `parseAdLibBase` and never reach this check.
+ */
 const parsePartAdLib = (value: unknown): AdLib | null => {
   const base = parseAdLibBase(value);
   if (!(base && isJsonObject(value))) {

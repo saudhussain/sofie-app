@@ -22,6 +22,11 @@ import {
 import { AdlibControl } from './adlib-control';
 import { DveRouting } from './dve-routing';
 
+/**
+ * One camera. The label is the gateway name, which is the camera number.
+ * A single action is sent as `actionType`. None, or more than one, sends
+ * the id alone.
+ */
 function CameraButton({ item }: { item: ReturnType<typeof adaptAdLib> }) {
   const { fire, message, status } = useAdLibFire();
   const statusText = fireStatusText(status, message);
@@ -44,6 +49,7 @@ function CameraButton({ item }: { item: ReturnType<typeof adaptAdLib> }) {
   );
 }
 
+/** One of out, toggle, or in. The tap posts that action name on the parent adlib. */
 function ModeZone({
   action,
   itemId,
@@ -73,6 +79,10 @@ function ModeZone({
   );
 }
 
+/**
+ * Three zones on one adlib, ordered out, toggle, in.
+ * A name outside that list sorts first because `indexOf` returns -1.
+ */
 function ModeControl({ item }: { item: ReturnType<typeof adaptAdLib> }) {
   const order = ['out', 'toggle', 'in'];
   const actions = [...item.actions].sort(
@@ -95,6 +105,7 @@ function ModeControl({ item }: { item: ReturnType<typeof adaptAdLib> }) {
   );
 }
 
+/** Plain adlibs. `danger` paints Clear and Exit while they are idle. */
 function ButtonGroup({
   danger,
   items,
@@ -111,6 +122,10 @@ function ButtonGroup({
   );
 }
 
+/**
+ * Draws one global section. Cameras, remotes, layouts, routing, up/down
+ * pairs, and modes each have their own control. Everything else is a button.
+ */
 function SectionBody({ section }: { section: GlobalSection }) {
   switch (section.kind) {
     case 'cameras':
@@ -129,6 +144,7 @@ function SectionBody({ section }: { section: GlobalSection }) {
               className="grid grid-cols-1 gap-2 xl:grid-cols-2"
               key={pair.sound.id}
             >
+              {/* An unpaired video-only feed is stored on `sound`, so the hint follows its tag. */}
               <AdlibControl
                 compact
                 hint={
@@ -186,7 +202,13 @@ function SectionBody({ section }: { section: GlobalSection }) {
   }
 }
 
-/** Rundown-wide controls. They stay up no matter which segment is selected. */
+/**
+ * Rundown-wide controls. They stay up no matter which segment is selected.
+ * The heading count is gateway adlibs, so a remote pair counts as two and
+ * a routing section counts its mode items, not every source cell.
+ * A blocked connection replaces the list. Buttons from the last good
+ * message are not kept.
+ */
 export const GlobalPanel = ({
   connection,
 }: {
