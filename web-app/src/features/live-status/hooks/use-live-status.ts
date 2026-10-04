@@ -7,9 +7,8 @@ import type { ConnectionState } from '../types';
  * `useSyncExternalStore` re-renders when the client tells its listeners the
  * derived state changed. The third argument is the server snapshot. This app
  * does not render on a server, so it is the same function.
- * The client is a module singleton. The first subscriber opens the socket.
- * The last unsubscribe closes it on the next turn, so a Strict Mode remount
- * keeps the connection.
+ * The client is a module singleton. The first subscriber opens the socket
+ * and it stays open, so a Strict Mode remount keeps the connection.
  */
 export const useLiveStatus = (): ConnectionState =>
   useSyncExternalStore(

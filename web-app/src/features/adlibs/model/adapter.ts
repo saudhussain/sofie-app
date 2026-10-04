@@ -64,10 +64,7 @@ const readPicture = (value: unknown): NoraPicture | undefined => {
  * A payload that is missing, not JSON, or has no `content` object leaves
  * the title to the packed gateway name.
  */
-const readNoraContent = (payload: string | undefined): NoraContent | null => {
-  if (!payload) {
-    return null;
-  }
+const parseNoraContent = (payload: string): NoraContent | null => {
   try {
     const parsed: unknown = JSON.parse(payload);
     if (!(isJsonObject(parsed) && isJsonObject(parsed.content))) {
@@ -81,6 +78,26 @@ const readNoraContent = (payload: string | undefined): NoraContent | null => {
   } catch {
     return null;
   }
+};
+
+/**
+ * Keyed on the payload string. Every `adLibs` push rebuilds the lists, and
+ * parsing the same JSON again is the expensive part of adapting. A failed
+ * payload is cached too, so a bad one is not reparsed on the next push.
+ */
+const noraContentCache = new Map<string, NoraContent | null>();
+
+const readNoraContent = (payload: string | undefined): NoraContent | null => {
+  if (!payload) {
+    return null;
+  }
+  const cached = noraContentCache.get(payload);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const content = parseNoraContent(payload);
+  noraContentCache.set(payload, content);
+  return content;
 };
 
 const groupOf = (sourceLayer: string): string => {

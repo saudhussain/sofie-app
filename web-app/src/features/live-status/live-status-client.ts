@@ -73,15 +73,15 @@ type LiveStatusClient = {
  * One websocket for the whole board.
  * Subscribes to `adLibs` and `activePlaylist`, keeps the last good payloads,
  * and derives the connection state the panels read. The first subscriber
- * opens the socket. The last one closes it on the next turn.
+ * opens the socket and it stays open for the life of the page; the browser
+ * closes it on unload. A Strict Mode remount drops and re-adds its listener
+ * in the same turn, and the socket that is already open is reused.
  */
 export const createLiveStatusClient = (
   url: string = LIVE_STATUS_URL
 ): LiveStatusClient => {
   const listeners = new Set<() => void>();
   let socket: WebSocket | null = null;
-  let retryTimer: number | undefined;
-  let stopTimer: number | undefined;
   let reconnectAttempt = 0;
   let stopped = true;
   let link: SocketLink = 'connecting';
@@ -118,7 +118,7 @@ export const createLiveStatusClient = (
       snapshot = null;
       playlist = null;
       notify();
-      retryTimer = window.setTimeout(() => {
+      window.setTimeout(() => {
         connect();
       }, reconnectDelay(reconnectAttempt));
       reconnectAttempt += 1;
@@ -184,7 +184,7 @@ export const createLiveStatusClient = (
       snapshot = null;
       playlist = null;
       notify();
-      retryTimer = window.setTimeout(() => {
+      window.setTimeout(() => {
         if (stopped) {
           return;
         }
@@ -209,24 +209,12 @@ export const createLiveStatusClient = (
     connect();
   };
 
-  const stop = () => {
-    stopped = true;
-    window.clearTimeout(retryTimer);
-    window.clearTimeout(stopTimer);
-    retryTimer = undefined;
-    stopTimer = undefined;
-    socket?.close();
-    socket = null;
-  };
-
   /**
-   * The first listener opens the socket. The last one does not close it in
-   * this turn: React Strict Mode unsubscribes and subscribes again before
-   * the timeout, and the timeout then sees a listener and leaves the socket up.
+   * The first listener opens the socket. Later listeners share it, and
+   * unsubscribing never closes it: the board is one page, and the browser
+   * closes the socket when that page goes away.
    */
   const subscribe = (listener: () => void): (() => void) => {
-    window.clearTimeout(stopTimer);
-    stopTimer = undefined;
     const shouldStart = listeners.size === 0;
     listeners.add(listener);
     if (shouldStart) {
@@ -234,14 +222,6 @@ export const createLiveStatusClient = (
     }
     return () => {
       listeners.delete(listener);
-      if (listeners.size === 0) {
-        // Strict Mode unsubscribes and resubscribes in the same turn.
-        stopTimer = window.setTimeout(() => {
-          if (listeners.size === 0) {
-            stop();
-          }
-        }, 0);
-      }
     };
   };
 

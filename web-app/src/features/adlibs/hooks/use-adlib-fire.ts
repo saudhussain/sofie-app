@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useLiveStatus } from '@/features/live-status/hooks/use-live-status';
+import { usePlaylistId } from '@/features/live-status/playlist-id';
 import { executeAdLib } from '../api/execute-adlib';
 
 export type FireStatus = 'idle' | 'busy' | 'success' | 'error';
@@ -51,13 +51,11 @@ export const fireToneClass: Record<FireTone, { border: string; text: string }> =
 /**
  * One control's execute-adlib state. A second tap while the request is in
  * flight does nothing. Success clears itself. An error stays until the next tap.
- * The playlist id comes from the live connection. With no active rundown the
- * tap is not sent.
+ * The playlist id comes from the provider in `App`. With no active rundown
+ * the tap is not sent.
  */
 export const useAdLibFire = () => {
-  const connection = useLiveStatus();
-  const playlistId =
-    connection.kind === 'connected' ? connection.rundownPlaylistId : null;
+  const playlistId = usePlaylistId();
   const [status, setStatus] = useState<FireStatus>('idle');
   const [message, setMessage] = useState<string | undefined>(undefined);
   // Written in apply, so a second tap before the next paint still sees busy.

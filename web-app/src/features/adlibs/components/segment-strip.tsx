@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { PRESS_FRAME, Pressable } from '@/shared/ui/pressable';
 import type { SegmentTab } from '../model/segments';
 
@@ -23,12 +23,21 @@ function SegmentChip({
   tab: SegmentTab;
 }) {
   const marker = roleLabel[tab.role];
+  const itemRef = useRef<HTMLLIElement>(null);
   const fire = useCallback(() => {
     onSelect(tab.id);
   }, [onSelect, tab.id]);
 
+  // The strip scrolls sideways, so the open tab can leave the screen.
+  // Bring it back when it becomes the one whose buttons are shown.
+  useEffect(() => {
+    if (selected) {
+      itemRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+  }, [selected]);
+
   return (
-    <li className="shrink-0">
+    <li className="shrink-0" ref={itemRef}>
       <Pressable
         aria-current={tab.role === 'current' ? 'true' : undefined}
         aria-pressed={selected}

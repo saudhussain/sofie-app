@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { blockedPanelMessage } from '@/features/live-status/connection-state';
 import type { ConnectionState } from '@/features/live-status/types';
 import {
@@ -11,9 +11,53 @@ import {
   buildSegmentStrip,
   groupByLayer,
   groupSegments,
+  type SegmentTab,
 } from '../model/segments';
 import { AdlibControl } from './adlib-control';
 import { SegmentStrip } from './segment-strip';
+
+/**
+ * Names the segment whose buttons are on screen. The tab strip can scroll
+ * that tab away, so the name stays here, above the buttons.
+ * While a different segment is on air, that name is shown too.
+ */
+function ShownSegment({
+  onAir,
+  showing,
+}: {
+  onAir: SegmentTab | undefined;
+  showing: SegmentTab;
+}) {
+  const status = segmentStatus(showing, onAir);
+  return (
+    <div className="flex shrink-0 items-baseline gap-3 border-line border-b px-5 py-2">
+      <p className="min-w-0 flex-1 truncate text-sm" id="shown-segment-label">
+        {showing.label}
+      </p>
+      {status ? (
+        <p
+          className={`shrink-0 truncate font-mono text-[11px] uppercase tracking-[0.14em] ${status.onAir ? 'text-ready' : 'max-w-[45%] text-standby'}`}
+        >
+          {status.text}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** The note beside the segment name. Absent when Sofie has not named an on-air segment. */
+const segmentStatus = (
+  showing: SegmentTab,
+  onAir: SegmentTab | undefined
+): { onAir: boolean; text: string } | null => {
+  if (showing.role === 'current') {
+    return { onAir: true, text: 'On air' };
+  }
+  if (onAir) {
+    return { onAir: false, text: `On air is ${onAir.label}` };
+  }
+  return null;
+};
 
 /**
  * The wide column: part adlibs, one segment at a time.
@@ -39,15 +83,20 @@ export const LocalPanel = ({ connection }: { connection: ConnectionState }) => {
     [currentSegmentId, nextSegmentId, segments]
   );
   const [pinnedId, setPinnedId] = useState<string | null>(null);
-
-  // A manual tab stays until Sofie moves the on-air segment. Then follow it.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: currentSegmentId is the reset trigger
-  useEffect(() => {
+  const [pinnedDuring, setPinnedDuring] = useState(currentSegmentId);
+  // A pin belongs to the on-air segment it was made under. When Sofie Takes,
+  // that id changes and the pin is dropped here, during render, so React
+  // retries before paint and the board follows the Take without an extra pass.
+  // Once dropped it stays dropped: returning to this segment does not restore it.
+  if (pinnedDuring !== currentSegmentId) {
+    setPinnedDuring(currentSegmentId);
     setPinnedId(null);
-  }, [currentSegmentId]);
+  }
 
   // No pin means the on-air segment, or the first segment when that is unknown.
   const selectedId = pinnedId ?? strip.defaultSegmentId;
+  const selectedTab = strip.tabs.find((tab) => tab.id === selectedId);
+  const onAirTab = strip.tabs.find((tab) => tab.role === 'current');
   const selected =
     segments.find((segment) => segment.id === selectedId)?.items ?? [];
   const layers = useMemo(() => groupByLayer(selected), [selected]);
@@ -69,7 +118,13 @@ export const LocalPanel = ({ connection }: { connection: ConnectionState }) => {
             selectedId={selectedId}
             tabs={strip.tabs}
           />
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4">
+          {selectedTab ? (
+            <ShownSegment onAir={onAirTab} showing={selectedTab} />
+          ) : null}
+          <section
+            aria-labelledby={selectedTab ? 'shown-segment-label' : undefined}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4"
+          >
             {layers.length === 0 ? (
               <EmptyLine message="No adlibs in this segment" />
             ) : (
@@ -87,7 +142,7 @@ export const LocalPanel = ({ connection }: { connection: ConnectionState }) => {
                 </section>
               ))
             )}
-          </div>
+          </section>
         </>
       )}
     </PanelShell>

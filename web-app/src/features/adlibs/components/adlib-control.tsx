@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { type ToggleEvent, useCallback, useEffect, useState } from 'react';
 import { PRESS_FRAME, Pressable } from '@/shared/ui/pressable';
 import {
   type FireStatus,
@@ -226,6 +226,37 @@ function ActionZones({
 }
 
 /**
+ * The zones of an adlib with many actions. They are mounted only while the
+ * disclosure is open: a closed `<details>` still renders its children, and
+ * three routing adlibs would otherwise mount 168 buttons that post nothing
+ * the operator can see.
+ */
+function CollapsedActions({
+  danger,
+  item,
+}: {
+  danger: boolean;
+  item: ControlItem;
+}) {
+  const [open, setOpen] = useState(false);
+  const onToggle = useCallback((event: ToggleEvent<HTMLDetailsElement>) => {
+    setOpen(event.currentTarget.open);
+  }, []);
+  return (
+    <details onToggle={onToggle}>
+      <summary className="cursor-pointer select-none py-1 font-mono text-[11px] text-cue uppercase tracking-[0.14em]">
+        {item.actions.length} actions
+      </summary>
+      {open ? (
+        <div className="pt-2">
+          <ActionZones danger={danger} dense item={item} />
+        </div>
+      ) : null}
+    </details>
+  );
+}
+
+/**
  * Header plus one zone per action. The header does not post.
  * Each zone posts this adlib with that action's name as `actionType`.
  * An adlib with many actions keeps them collapsed, so one of them cannot
@@ -237,7 +268,6 @@ function SplitAdlib({
   hint,
   item,
 }: AdlibControlProps) {
-  const dense = item.actions.length > MANY_ACTIONS;
   return (
     <article
       className={`flex flex-col gap-2 border bg-stage p-3 ${compact ? 'min-h-12' : 'min-h-22'} ${danger ? 'border-danger text-danger' : 'border-line'}`}
@@ -248,15 +278,8 @@ function SplitAdlib({
           {hint}
         </p>
       ) : null}
-      {dense ? (
-        <details>
-          <summary className="cursor-pointer select-none py-1 font-mono text-[11px] text-cue uppercase tracking-[0.14em]">
-            {item.actions.length} actions
-          </summary>
-          <div className="pt-2">
-            <ActionZones danger={danger} dense item={item} />
-          </div>
-        </details>
+      {item.actions.length > MANY_ACTIONS ? (
+        <CollapsedActions danger={danger} item={item} />
       ) : (
         <ActionZones danger={danger} dense={false} item={item} />
       )}
