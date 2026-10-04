@@ -75,7 +75,7 @@ Segment tabs only change the local view. So does opening a disclosure.
 | `web-app/src/features/adlibs/model/adapter.ts` | Turns a raw adlib into title, group, and actions |
 | `web-app/src/features/adlibs/model/segments.ts` | Groups part adlibs into the segment strip |
 | `web-app/src/features/adlibs/model/group-globals.ts` | Groups global adlibs by source layer |
-| `web-app/src/features/live-status/components/status-bar.tsx` | Renders the lamp |
+| `web-app/src/features/live-status/components/status-bar/index.tsx` | Renders the lamp |
 | `web-app/src/features/live-status/types.ts` | Gateway adlib, playlist, and connection types |
 | `web-app/src/features/adlibs/types.ts` | Board view-model for one adapted adlib |
 | `web-app/src/features/adlibs/api/execute-adlib.ts` | Posts one adlib and turns the response into a result |

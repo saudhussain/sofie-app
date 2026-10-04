@@ -6,9 +6,9 @@ import {
   PanelShell,
   PanelSubheading,
 } from '@/shared/ui/panel-shell';
-import { adaptAdLib } from '../model/adapter';
-import { groupGlobalAdLibs, isDangerAdLib } from '../model/group-globals';
-import { AdlibControl } from './adlib-control';
+import { adaptAdLib } from '../../model/adapter';
+import { groupGlobalAdLibs, isDangerAdLib } from '../../model/group-globals';
+import { AdlibControl } from '../adlib-control';
 
 /**
  * Rundown-wide controls. They stay up no matter which segment is selected.

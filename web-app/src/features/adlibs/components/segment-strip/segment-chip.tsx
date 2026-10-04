@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { PRESS_FRAME, Pressable } from '@/shared/ui/pressable';
-import type { SegmentTab } from '../model/segments';
+import type { SegmentTab } from '../../model/segments';
 
 const roleLabel: Partial<Record<SegmentTab['role'], string>> = {
   current: 'On air',
@@ -13,7 +13,7 @@ const roleLabel: Partial<Record<SegmentTab['role'], string>> = {
  * the tab whose buttons are open. Those can be different segments.
  * The tap only selects locally. It does not Take in Sofie.
  */
-function SegmentChip({
+export function SegmentChip({
   onSelect,
   selected,
   tab,
@@ -58,25 +58,3 @@ function SegmentChip({
     </li>
   );
 }
-
-/** Horizontal rundown strip. On air stays marked even when another segment is open. */
-export const SegmentStrip = ({
-  onSelect,
-  selectedId,
-  tabs,
-}: {
-  onSelect: (id: string) => void;
-  selectedId: string | null;
-  tabs: SegmentTab[];
-}) => (
-  <ul className="flex shrink-0 gap-2 overflow-x-auto px-3 py-3">
-    {tabs.map((tab) => (
-      <SegmentChip
-        key={tab.id}
-        onSelect={onSelect}
-        selected={tab.id === selectedId}
-        tab={tab}
-      />
-    ))}
-  </ul>
-);
