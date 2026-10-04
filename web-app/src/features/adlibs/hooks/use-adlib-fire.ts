@@ -40,23 +40,13 @@ export const fireStatusTone = (status: FireStatus): FireTone | undefined => {
   return undefined;
 };
 
-/**
- * Border and text classes while a control is sending, sent, or failed.
- * Idle returns nothing so the caller keeps its own frame.
- */
-export const fireFrameClass = (status: FireStatus): string | undefined => {
-  const tone = fireStatusTone(status);
-  if (tone === 'standby') {
-    return 'border-standby text-standby';
-  }
-  if (tone === 'ready') {
-    return 'border-ready text-ready';
-  }
-  if (tone === 'danger') {
-    return 'border-danger text-danger';
-  }
-  return undefined;
-};
+/** The one place a fire tone becomes classes. */
+export const fireToneClass: Record<FireTone, { border: string; text: string }> =
+  {
+    danger: { border: 'border-danger', text: 'text-danger' },
+    ready: { border: 'border-ready', text: 'text-ready' },
+    standby: { border: 'border-standby', text: 'text-standby' },
+  };
 
 /**
  * One control's execute-adlib state. A second tap while the request is in
@@ -113,16 +103,15 @@ export const useAdLibFire = () => {
       const controller = new AbortController();
       abortRef.current = controller;
       apply('busy');
-      // A blank action is no choice, so the body stays the id alone.
-      const chosen = actionType || undefined;
 
       const send = async () => {
         try {
           const result = await executeAdLib({
+            // A blank action is no choice, so the body stays the id alone.
+            actionType: actionType || undefined,
             adLibId,
             playlistId,
             signal: controller.signal,
-            ...(chosen === undefined ? {} : { actionType: chosen }),
           });
           // This press was replaced or the control unmounted.
           if (request !== generation.current) {

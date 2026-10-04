@@ -1,7 +1,7 @@
 export type ExecuteAdLibResult =
   | { kind: 'ok' }
   | { kind: 'not-on-air' }
-  | { kind: 'error'; status?: number };
+  | { kind: 'error' };
 
 export type ExecuteAdLibInput = {
   actionType?: string;
@@ -57,7 +57,7 @@ export const executeAdLib = async ({
       return { kind: 'not-on-air' };
     }
     if (!response.ok) {
-      return { kind: 'error', status: response.status };
+      return { kind: 'error' };
     }
     return { kind: 'ok' };
   } catch {

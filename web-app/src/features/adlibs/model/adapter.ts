@@ -53,9 +53,9 @@ const readPicture = (value: unknown): NoraPicture | undefined => {
     : [];
   return {
     creators,
-    ...(readString(value.credit) ? { credit: readString(value.credit) } : {}),
-    ...(readString(value.title) ? { title: readString(value.title) } : {}),
-    ...(readString(value.url) ? { url: readString(value.url) } : {}),
+    credit: readString(value.credit),
+    title: readString(value.title),
+    url: readString(value.url),
   };
 };
 
@@ -73,15 +73,10 @@ const readNoraContent = (payload: string | undefined): NoraContent | null => {
     if (!(isJsonObject(parsed) && isJsonObject(parsed.content))) {
       return null;
     }
-    const picture = readPicture(parsed.content.picture);
     return {
-      ...(readString(parsed.content.mainText)
-        ? { mainText: readString(parsed.content.mainText) }
-        : {}),
-      ...(picture ? { picture } : {}),
-      ...(readString(parsed.content.secondaryText)
-        ? { secondaryText: readString(parsed.content.secondaryText) }
-        : {}),
+      mainText: readString(parsed.content.mainText),
+      picture: readPicture(parsed.content.picture),
+      secondaryText: readString(parsed.content.secondaryText),
     };
   } catch {
     return null;
@@ -130,16 +125,17 @@ export const adaptAdLib = <T extends AdLibBase>(raw: T): AdaptedAdLib<T> => {
       label: action.label,
       name: action.name,
     })),
+    credit: picture?.credit,
+    durationMs:
+      typeof duration === 'number' && Number.isFinite(duration)
+        ? duration
+        : undefined,
     group: groupOf(raw.sourceLayer),
     id: raw.id,
     raw,
+    subtitle,
+    thumbnailUrl: picture?.url,
     title,
-    ...(picture?.credit ? { credit: picture.credit } : {}),
-    ...(typeof duration === 'number' && Number.isFinite(duration)
-      ? { durationMs: duration }
-      : {}),
-    ...(subtitle ? { subtitle } : {}),
-    ...(picture?.url ? { thumbnailUrl: picture.url } : {}),
   };
 };
 

@@ -15,7 +15,7 @@ export type SocketLink = 'connecting' | 'gateway-down' | 'open';
  * Gateway down wins. An open socket without an adLibs message stays
  * connecting. A null playlist id means no rundown is active.
  */
-export const deriveLiveStatus = (
+const deriveLiveStatus = (
   link: SocketLink,
   snapshot: AdLibsSnapshot | null,
   playlist: PlaylistPosition | null
@@ -66,8 +66,6 @@ const sameConnection = (
 
 type LiveStatusClient = {
   getSnapshot: () => ConnectionState;
-  start: () => void;
-  stop: () => void;
   subscribe: (listener: () => void) => () => void;
 };
 
@@ -244,7 +242,7 @@ export const createLiveStatusClient = (
 
   const getSnapshot = (): ConnectionState => derived;
 
-  return { getSnapshot, start, stop, subscribe };
+  return { getSnapshot, subscribe };
 };
 
 /** Shared by every `useLiveStatus` call so the board has one socket. */

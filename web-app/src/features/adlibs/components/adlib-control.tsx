@@ -5,6 +5,7 @@ import {
   type FireTone,
   fireStatusText,
   fireStatusTone,
+  fireToneClass,
   useAdLibFire,
 } from '../hooks/use-adlib-fire';
 import { formatDuration } from '../model/adapter';
@@ -65,12 +66,6 @@ function Thumbnail({ url }: { url: string }) {
   );
 }
 
-const toneClass: Record<FireTone, string> = {
-  danger: 'text-danger',
-  ready: 'text-ready',
-  standby: 'text-standby',
-};
-
 /**
  * The second line of a control.
  * A fire status replaces the credit or subtitle for as long as that status
@@ -89,7 +84,7 @@ function DetailLine({
     return (
       <p
         aria-live="polite"
-        className={`truncate font-mono text-[11px] uppercase tracking-[0.14em] ${toneClass[tone ?? 'standby']}`}
+        className={`truncate font-mono text-[11px] uppercase tracking-[0.14em] ${fireToneClass[tone ?? 'standby'].text}`}
       >
         {statusText}
       </p>
@@ -142,13 +137,10 @@ function Face({
 /** A fire tone replaces the idle border. Danger text stays only while idle. */
 const borderFor = (danger: boolean, status: FireStatus): string => {
   const tone = fireStatusTone(status);
-  if (tone === 'standby') {
-    return 'border-standby';
+  if (tone) {
+    return fireToneClass[tone].border;
   }
-  if (tone === 'ready') {
-    return 'border-ready';
-  }
-  if (tone === 'danger' || danger) {
+  if (danger) {
     return 'border-danger';
   }
   return 'border-line active:border-cue active:shadow-[0_0_8px_var(--color-cue)]';
@@ -164,11 +156,13 @@ const zoneClass = (danger: boolean, compact: boolean, status: FireStatus) =>
 
 function ActionZone({
   actionName,
+  compact,
   danger,
   item,
   label,
 }: {
   actionName: string;
+  compact: boolean;
   danger?: boolean;
   item: ControlItem;
   label: string;
@@ -183,7 +177,7 @@ function ActionZone({
     <Pressable
       aria-busy={status === 'busy'}
       aria-label={`${item.title}, ${statusText ?? label}`}
-      className={`${zoneClass(Boolean(danger), false, status)} w-full bg-stage`}
+      className={`${zoneClass(Boolean(danger), compact, status)} w-full bg-stage`}
       onFire={onFire}
     >
       <span className="relative font-mono text-[11px] uppercase tracking-[0.14em]">
@@ -194,8 +188,48 @@ function ActionZone({
 }
 
 /**
+ * Above this, an adlib's actions are drawn as small cells behind a disclosure
+ * instead of full-width zones. Sofie's DVE routing adlibs carry 56 each.
+ */
+const MANY_ACTIONS = 4;
+
+/** One cell per action the gateway offers, using Sofie's own labels. */
+function ActionZones({
+  danger,
+  dense,
+  item,
+}: {
+  danger: boolean;
+  dense: boolean;
+  item: ControlItem;
+}) {
+  return (
+    <div
+      className={
+        dense
+          ? 'grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-1'
+          : 'grid grid-cols-2 gap-2'
+      }
+    >
+      {item.actions.map((action) => (
+        <ActionZone
+          actionName={action.name}
+          compact={dense}
+          danger={danger}
+          item={item}
+          key={action.name}
+          label={action.label}
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
  * Header plus one zone per action. The header does not post.
  * Each zone posts this adlib with that action's name as `actionType`.
+ * An adlib with many actions keeps them collapsed, so one of them cannot
+ * push the rest of the panel off screen.
  */
 function SplitAdlib({
   compact = false,
@@ -203,6 +237,7 @@ function SplitAdlib({
   hint,
   item,
 }: AdlibControlProps) {
+  const dense = item.actions.length > MANY_ACTIONS;
   return (
     <article
       className={`flex flex-col gap-2 border bg-stage p-3 ${compact ? 'min-h-12' : 'min-h-22'} ${danger ? 'border-danger text-danger' : 'border-line'}`}
@@ -213,17 +248,18 @@ function SplitAdlib({
           {hint}
         </p>
       ) : null}
-      <div className="grid grid-cols-2 gap-2">
-        {item.actions.map((action) => (
-          <ActionZone
-            actionName={action.name}
-            danger={danger}
-            item={item}
-            key={action.name}
-            label={action.label}
-          />
-        ))}
-      </div>
+      {dense ? (
+        <details>
+          <summary className="cursor-pointer select-none py-1 font-mono text-[11px] text-cue uppercase tracking-[0.14em]">
+            {item.actions.length} actions
+          </summary>
+          <div className="pt-2">
+            <ActionZones danger={danger} dense item={item} />
+          </div>
+        </details>
+      ) : (
+        <ActionZones danger={danger} dense={false} item={item} />
+      )}
     </article>
   );
 }

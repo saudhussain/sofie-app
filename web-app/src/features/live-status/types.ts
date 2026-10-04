@@ -34,16 +34,14 @@ export type AdLib = AdLibBase & {
   segmentId: string;
 };
 
-/** An adlib for the whole rundown. It has no segment. */
-export type GlobalAdLib = AdLibBase;
-
 /**
  * One `adLibs` push from the Live Status Gateway.
+ * `globalAdLibs` are `AdLibBase` because a rundown-wide adlib has no segment.
  * `rundownPlaylistId` is null when no rundown is active.
  */
 export type AdLibsSnapshot = {
   adLibs: AdLib[];
-  globalAdLibs: GlobalAdLib[];
+  globalAdLibs: AdLibBase[];
   rundownPlaylistId: string | null;
 };
 
@@ -70,7 +68,7 @@ export type ConnectionState =
       kind: 'connected';
       adLibs: AdLib[];
       currentSegmentId: string | null;
-      globalAdLibs: GlobalAdLib[];
+      globalAdLibs: AdLibBase[];
       nextSegmentId: string | null;
       rundownPlaylistId: string;
     };

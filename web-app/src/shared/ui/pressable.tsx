@@ -4,7 +4,6 @@ type PressableProps = {
   'aria-busy'?: boolean;
   'aria-current'?: 'true';
   'aria-label'?: string;
-  'aria-live'?: 'polite';
   'aria-pressed'?: boolean;
   children: ReactNode;
   className?: string;
@@ -20,15 +19,13 @@ const buttonClass = (className: string | undefined): string =>
 /**
  * The only clickable control on the board.
  * `touch-manipulation` drops the browser's tap delay. The caller decides what
- * a tap means: a fire hook posts an adlib, a chip only changes local selection.
+ * a tap means: a fire hook posts an adlib, a segment tab only changes the view.
  * A second tap while a request is in flight is ignored by that hook, not here.
- * `disabled` is for a chip whose action is missing from the current adlib.
  */
 export const Pressable = ({
   'aria-busy': ariaBusy,
   'aria-current': ariaCurrent,
   'aria-label': ariaLabel,
-  'aria-live': ariaLive,
   'aria-pressed': ariaPressed,
   children,
   className,
@@ -39,7 +36,6 @@ export const Pressable = ({
     aria-busy={ariaBusy}
     aria-current={ariaCurrent}
     aria-label={ariaLabel}
-    aria-live={ariaLive}
     aria-pressed={ariaPressed}
     className={buttonClass(className)}
     disabled={disabled}
@@ -48,60 +44,4 @@ export const Pressable = ({
   >
     {children}
   </button>
-);
-
-const chipToneClass = {
-  danger: 'border-danger text-danger',
-  ready: 'border-ready text-ready',
-  standby: 'border-standby text-standby',
-} as const;
-
-/** A fire tone replaces the idle and selected frames while that status shows. */
-const chipClass = (
-  disabled: boolean | undefined,
-  pressed: boolean | undefined,
-  tone: keyof typeof chipToneClass | undefined
-): string => {
-  if (tone) {
-    return chipToneClass[tone];
-  }
-  if (disabled) {
-    return 'border-line text-muted';
-  }
-  const selected = pressed ? 'border-cue text-cue' : '';
-  return `border-line text-ink active:border-cue ${selected}`;
-};
-
-/**
- * Small labeled button for DVE mode, IP, and a routing source.
- * Without `onFire` the chip stays visible and a tap does nothing, which is
- * how a source the selected mode does not list stays on screen but inert.
- */
-export const Chip = ({
-  busy = false,
-  disabled,
-  label,
-  live = false,
-  onFire,
-  pressed,
-  tone,
-}: {
-  busy?: boolean;
-  disabled?: boolean;
-  label: string;
-  live?: boolean;
-  onFire?: () => void;
-  pressed?: boolean;
-  tone?: keyof typeof chipToneClass;
-}) => (
-  <Pressable
-    aria-busy={busy || undefined}
-    aria-live={live ? 'polite' : undefined}
-    aria-pressed={pressed}
-    className={`min-h-12 truncate border px-2 font-mono text-[11px] uppercase tracking-[0.12em] ${chipClass(disabled, pressed, tone)}`}
-    disabled={disabled}
-    onFire={onFire}
-  >
-    {label}
-  </Pressable>
 );

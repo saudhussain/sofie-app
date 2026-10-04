@@ -52,10 +52,7 @@ const parsePublicData = (value: unknown): AdLibPublicData | undefined => {
     return undefined;
   }
 
-  return {
-    ...(noraPayload === undefined ? {} : { noraPayload }),
-    ...(duration === undefined ? {} : { noraTiming: { duration } }),
-  };
+  return { noraPayload, noraTiming: { duration } };
 };
 
 const parseAdLibBase = (value: unknown): AdLibBase | null => {
@@ -67,30 +64,28 @@ const parseAdLibBase = (value: unknown): AdLibBase | null => {
     return null;
   }
 
-  const publicData = parsePublicData(value.publicData);
-
   return {
     actionType: parseActionTypes(value.actionType),
     id: value.id,
     name: value.name,
-    ...(publicData ? { publicData } : {}),
-    // A missing layer still keeps the item. "invalid" is filtered in the adapter.
+    publicData: parsePublicData(value.publicData),
+    // A missing layer still keeps the item. "invalid" is renamed in the adapter.
     sourceLayer: typeof value.sourceLayer === 'string' ? value.sourceLayer : '',
     tags: parseTags(value.tags),
   };
 };
 
 /**
- * A part adlib must name its segment and part. Global adlibs do not, so they
- * are parsed with `parseAdLibBase` and never reach this check.
+ * A part adlib must name its segment. Global adlibs do not, so they are
+ * parsed with `parseAdLibBase` and never reach this check.
  */
 const parsePartAdLib = (value: unknown): AdLib | null => {
   const base = parseAdLibBase(value);
   if (!(base && isJsonObject(value))) {
     return null;
   }
-  // Part adlibs are tied to the content on air. No segment or part means drop it.
-  if (typeof value.segmentId !== 'string' || typeof value.partId !== 'string') {
+  // The segment is what buckets the item into a tab. Without one, drop it.
+  if (typeof value.segmentId !== 'string') {
     return null;
   }
 

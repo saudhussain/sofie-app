@@ -45,15 +45,19 @@ The status lamp stays as before:
 
 While the gateway is down or the rundown is inactive, both panels stay empty. Buttons from the last good message are not kept on screen.
 
-When a rundown is active, the wide panel shows one segment at a time, grouped by layer. The narrow panel shows every global adlib, independent of the selected segment.
+When a rundown is active, the wide panel shows one segment at a time, grouped by layer. The narrow panel shows every global adlib, independent of the selected segment, grouped the same way.
+
+Both panels group by the source layer the gateway reports, so an adlib from a layer this app has never seen still gets a heading and a button. Nothing in the code is tied to one rundown's layer names.
+
+An adlib that offers several actions is drawn as a header plus one zone per action. Above four actions the zones become small cells behind a disclosure, because Sofie's DVE routing adlibs carry 56 each. The labels on those cells are Sofie's own.
 
 ## Firing
 
-A completed press posts to `/api/v1.0/playlists/{rundownPlaylistId}/execute-adlib`. The body is `{ "adLibId": "<id>" }`. When the tap chose one action (a zone, a mode, a camera's only action, or a DVE source cell), the body also includes `actionType`. `adLibOptions` is not sent.
+A completed press posts to `/api/v1.0/playlists/{rundownPlaylistId}/execute-adlib`. The body is `{ "adLibId": "<id>" }`. When the tap chose one action, either the adlib's only action or one zone of several, the body also includes `actionType`. `adLibOptions` is not sent.
 
 The request times out after 10 seconds. While it is in flight that control says **Sending** and a second tap does nothing. The other controls stay usable. A 200 shows **Sent** for a moment, then the label returns. A 412 shows **Not on air**. Any other failure shows **Failed** until the next tap on that control.
 
-Segment tabs, and the DVE mode and IP chips, only change the local view.
+Segment tabs only change the local view. So does opening a disclosure.
 
 ## Code
 
@@ -68,7 +72,7 @@ Segment tabs, and the DVE mode and IP chips, only change the local view.
 | `web-app/src/shared/lib/safe-json.ts` | Narrows unknown JSON values to objects |
 | `web-app/src/features/adlibs/model/adapter.ts` | Turns a raw adlib into title, group, and actions |
 | `web-app/src/features/adlibs/model/segments.ts` | Groups part adlibs into the segment strip |
-| `web-app/src/features/adlibs/model/global-layout.ts` | Places every global adlib into a control group |
+| `web-app/src/features/adlibs/model/group-globals.ts` | Groups global adlibs by source layer |
 | `web-app/src/features/live-status/components/status-bar.tsx` | Renders the lamp |
 | `web-app/src/features/live-status/types.ts` | Gateway adlib, playlist, and connection types |
 | `web-app/src/features/adlibs/types.ts` | Board view-model for one adapted adlib |
