@@ -33,3 +33,13 @@ npm run dev
 The dev server proxies `/api` to Sofie on port 3000.
 
 How the app listens for adlibs, and how a tap fires one, is described in [docs/live-status.md](docs/live-status.md).
+
+## Component catalog
+
+Stories live in `storybook-app/`, separate from the touch screen. They draw the same components with a sample rundown. A tap there walks a control through Sending and Sent, and does not post to Sofie.
+
+```bash
+npm run storybook
+```
+
+The catalog is at http://localhost:6006. **Board / Touch screen / Live** is the real app, so that story opens the Live Status Gateway.

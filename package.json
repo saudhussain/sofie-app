@@ -2,7 +2,8 @@
   "name": "sofie-touch",
   "private": true,
   "workspaces": [
-    "web-app"
+    "web-app",
+    "storybook-app"
   ],
   "scripts": {
     "build": "npm run build -w web-app",
@@ -10,6 +11,7 @@
     "format": "npm run format -w web-app",
     "lint": "biome ci .",
     "preview": "npm run preview -w web-app",
-    "typecheck": "npm run typecheck -w web-app"
+    "storybook": "npm run dev -w storybook-app",
+    "typecheck": "npm run typecheck -w web-app && npm run typecheck -w storybook-app"
   }
 }

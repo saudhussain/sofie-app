@@ -1,0 +1,11 @@
+@import "../../web-app/src/styles/global.css";
+@source "../../web-app/src";
+@source ".";
+
+html,
+body,
+#storybook-root {
+  height: 100%;
+  color: var(--color-ink);
+  background-color: var(--color-stage);
+}
