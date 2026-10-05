@@ -5,8 +5,8 @@ import { CardFrame } from '../stage';
 
 const meta = {
   args: {
+    compact: false,
     danger: false,
-    dense: false,
     item: transitionItem,
   },
   component: ActionZones,
@@ -26,8 +26,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Pair: Story = {};
 
-export const Dense: Story = {
-  args: { dense: true, item: routingItem },
+export const Compact: Story = {
+  args: { compact: true, item: routingItem },
 };
 
 export const Danger: Story = {

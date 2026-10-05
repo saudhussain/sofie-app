@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { SplitAdlib } from '@/features/adlibs/components/adlib-control/split-adlib';
+import { SplitAdLib } from '@/features/adlibs/components/adlib-control/split-adlib';
 import { routingItem, transitionItem } from '../fixtures';
 import { CardFrame } from '../stage';
 
 const meta = {
   args: { item: transitionItem },
-  component: SplitAdlib,
+  component: SplitAdLib,
   decorators: [
     (Story) => (
       <CardFrame>
@@ -14,7 +14,7 @@ const meta = {
     ),
   ],
   title: 'Adlibs/Split adlib',
-} satisfies Meta<typeof SplitAdlib>;
+} satisfies Meta<typeof SplitAdLib>;
 
 export default meta;
 

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { AdlibControl } from '@/features/adlibs/components/adlib-control';
+import { AdLibControl } from '@/features/adlibs/components/adlib-control';
 import {
   clearItem,
   portraitItem,
@@ -10,7 +10,7 @@ import { CardFrame } from '../stage';
 
 const meta = {
   args: { item: portraitItem },
-  component: AdlibControl,
+  component: AdLibControl,
   decorators: [
     (Story) => (
       <CardFrame>
@@ -19,7 +19,7 @@ const meta = {
     ),
   ],
   title: 'Adlibs/Adlib control',
-} satisfies Meta<typeof AdlibControl>;
+} satisfies Meta<typeof AdLibControl>;
 
 export default meta;
 

@@ -26,7 +26,7 @@ export function CollapsedActions({
       </summary>
       {open ? (
         <div className="pt-2">
-          <ActionZones danger={danger} dense item={item} />
+          <ActionZones compact danger={danger} item={item} />
         </div>
       ) : null}
     </details>

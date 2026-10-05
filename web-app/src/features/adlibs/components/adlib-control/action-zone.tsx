@@ -20,7 +20,7 @@ export function ActionZone({
   const { fire, message, status } = useAdLibFire();
   const statusText = fireStatusText(status, message);
   // Each zone is one chosen action, so the action name always goes in the body.
-  const onFire = useCallback(() => {
+  const onPress = useCallback(() => {
     fire(item.id, actionName);
   }, [actionName, fire, item.id]);
   return (
@@ -28,7 +28,7 @@ export function ActionZone({
       aria-busy={status === 'busy'}
       aria-label={`${item.title}, ${statusText ?? label}`}
       className={`${zoneClass(Boolean(danger), compact, status)} w-full bg-stage`}
-      onFire={onFire}
+      onPress={onPress}
     >
       {danger ? (
         <span

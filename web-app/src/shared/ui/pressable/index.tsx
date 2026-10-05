@@ -21,13 +21,13 @@ type PressableProps = {
   children: ReactNode;
   className?: string;
   disabled?: boolean;
-  onFire?: () => void;
+  onPress?: () => void;
 };
 
 /**
  * The only clickable control on the board.
  * `touch-manipulation` drops the browser's tap delay. The caller decides what
- * a tap means: a fire hook posts an adlib, a segment tab only changes the view.
+ * a tap means: posting an adlib, or only changing which segment is open.
  * A second tap while a request is in flight is ignored by that hook, not here.
  */
 export const Pressable = ({
@@ -38,7 +38,7 @@ export const Pressable = ({
   children,
   className,
   disabled = false,
-  onFire,
+  onPress,
 }: PressableProps) => (
   <button
     aria-busy={ariaBusy}
@@ -47,7 +47,7 @@ export const Pressable = ({
     aria-pressed={ariaPressed}
     className={buttonClass(className)}
     disabled={disabled}
-    onClick={onFire}
+    onClick={onPress}
     type="button"
   >
     {children}

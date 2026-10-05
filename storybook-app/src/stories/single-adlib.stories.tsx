@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { SingleAdlib } from '@/features/adlibs/components/adlib-control/single-adlib';
+import { SingleAdLib } from '@/features/adlibs/components/adlib-control/single-adlib';
 import { PlaylistIdProvider } from '@/features/live-status/playlist-id';
 import { clearItem, portraitItem, welcomeItem } from '../fixtures';
 import { CardFrame } from '../stage';
 
 const meta = {
   args: { item: portraitItem },
-  component: SingleAdlib,
+  component: SingleAdLib,
   decorators: [
     (Story) => (
       <CardFrame>
@@ -15,7 +15,7 @@ const meta = {
     ),
   ],
   title: 'Adlibs/Single adlib',
-} satisfies Meta<typeof SingleAdlib>;
+} satisfies Meta<typeof SingleAdLib>;
 
 export default meta;
 
@@ -43,7 +43,7 @@ export const Hint: Story = {
 export const NotOnAir: Story = {
   render: (args) => (
     <PlaylistIdProvider playlistId={null}>
-      <SingleAdlib {...args} />
+      <SingleAdLib {...args} />
     </PlaylistIdProvider>
   ),
 };

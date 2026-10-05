@@ -34,7 +34,7 @@ export const zoneClass = (
   danger: boolean,
   compact: boolean,
   status: FireStatus
-) =>
+): string =>
   [
     'relative overflow-hidden border px-3 py-2 text-left',
     compact ? 'min-h-12' : 'min-h-22',

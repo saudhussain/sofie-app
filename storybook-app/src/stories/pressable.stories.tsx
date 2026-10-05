@@ -9,7 +9,7 @@ const meta = {
   args: {
     children: 'Take',
     className: buttonClass,
-    onFire: fn(),
+    onPress: fn(),
   },
   component: Pressable,
   title: 'Shared/Pressable',

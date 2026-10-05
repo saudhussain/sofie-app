@@ -1,11 +1,11 @@
-import { SingleAdlib } from './single-adlib';
-import { SplitAdlib } from './split-adlib';
-import type { AdlibControlProps } from './types';
+import { SingleAdLib } from './single-adlib';
+import { SplitAdLib } from './split-adlib';
+import type { AdLibControlProps } from './types';
 
 /** One adlib. Several actions become separate zones. A click posts the adlib. */
-export const AdlibControl = (props: AdlibControlProps) =>
+export const AdLibControl = (props: AdLibControlProps) =>
   props.item.actions.length > 1 ? (
-    <SplitAdlib {...props} />
+    <SplitAdLib {...props} />
   ) : (
-    <SingleAdlib {...props} />
+    <SingleAdLib {...props} />
   );

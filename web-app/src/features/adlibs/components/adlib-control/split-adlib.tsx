@@ -1,7 +1,7 @@
 import { ActionZones } from './action-zones';
 import { CollapsedActions } from './collapsed-actions';
 import { PreviewFace } from './preview-face';
-import type { AdlibControlProps } from './types';
+import type { AdLibControlProps } from './types';
 
 /**
  * Above this, an adlib's actions are drawn as small cells behind a disclosure
@@ -15,12 +15,12 @@ const MANY_ACTIONS = 4;
  * An adlib with many actions keeps them collapsed, so one of them cannot
  * push the rest of the panel off screen.
  */
-export function SplitAdlib({
+export function SplitAdLib({
   compact = false,
   danger = false,
   hint,
   item,
-}: AdlibControlProps) {
+}: AdLibControlProps) {
   return (
     <article
       className={`flex flex-col gap-2 border border-line bg-stage p-3 ${compact ? 'min-h-12' : 'min-h-22'} ${danger ? 'text-danger' : ''}`}
@@ -34,7 +34,7 @@ export function SplitAdlib({
       {item.actions.length > MANY_ACTIONS ? (
         <CollapsedActions danger={danger} item={item} />
       ) : (
-        <ActionZones danger={danger} dense={false} item={item} />
+        <ActionZones compact={false} danger={danger} item={item} />
       )}
     </article>
   );

@@ -24,7 +24,7 @@ export function SegmentChip({
 }) {
   const marker = roleLabel[tab.role];
   const itemRef = useRef<HTMLLIElement>(null);
-  const fire = useCallback(() => {
+  const select = useCallback(() => {
     onSelect(tab.id);
   }, [onSelect, tab.id]);
 
@@ -46,7 +46,7 @@ export function SegmentChip({
             ? 'border-ready text-ready'
             : 'border-line text-ink'
         } ${selected ? 'border-cue' : ''}`}
-        onFire={fire}
+        onPress={select}
       >
         {marker ? (
           <span className="font-mono text-[10px] uppercase tracking-[0.16em]">

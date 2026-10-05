@@ -12,7 +12,7 @@ import {
   groupByLayer,
   groupSegments,
 } from '../../model/segments';
-import { AdlibControl } from '../adlib-control';
+import { AdLibControl } from '../adlib-control';
 import { SegmentStrip } from '../segment-strip';
 import { ShownSegment } from './shown-segment';
 
@@ -93,7 +93,7 @@ export const LocalPanel = ({ connection }: { connection: ConnectionState }) => {
                   />
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-2">
                     {layer.items.map((item) => (
-                      <AdlibControl item={item} key={item.id} />
+                      <AdLibControl item={item} key={item.id} />
                     ))}
                   </div>
                 </section>

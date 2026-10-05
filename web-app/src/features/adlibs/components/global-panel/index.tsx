@@ -8,7 +8,7 @@ import {
 } from '@/shared/ui/panel-shell';
 import { adaptAdLib } from '../../model/adapter';
 import { groupGlobalAdLibs, isDangerAdLib } from '../../model/group-globals';
-import { AdlibControl } from '../adlib-control';
+import { AdLibControl } from '../adlib-control';
 
 /**
  * Rundown-wide controls. They stay up no matter which segment is selected.
@@ -54,7 +54,7 @@ export const GlobalPanel = ({
                     stretch the other cards in its row. */}
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] items-start gap-2">
                   {section.items.map((item) => (
-                    <AdlibControl
+                    <AdLibControl
                       danger={isDangerAdLib(item)}
                       item={item}
                       key={item.id}

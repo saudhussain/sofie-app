@@ -3,18 +3,18 @@ import type { ControlItem } from './types';
 
 /** One cell per action the gateway offers, using Sofie's own labels. */
 export function ActionZones({
+  compact,
   danger,
-  dense,
   item,
 }: {
+  compact: boolean;
   danger: boolean;
-  dense: boolean;
   item: ControlItem;
 }) {
   return (
     <div
       className={
-        dense
+        compact
           ? 'grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-1'
           : 'grid grid-cols-2 gap-2'
       }
@@ -22,7 +22,7 @@ export function ActionZones({
       {item.actions.map((action) => (
         <ActionZone
           actionName={action.name}
-          compact={dense}
+          compact={compact}
           danger={danger}
           item={item}
           key={action.name}

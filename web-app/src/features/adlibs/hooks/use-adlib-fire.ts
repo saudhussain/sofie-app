@@ -60,7 +60,11 @@ export const fireToneClass: Record<FireTone, { border: string; text: string }> =
  * until the next tap. The playlist id comes from the provider in `App`.
  * With no active rundown the tap is not sent.
  */
-export const useAdLibFire = () => {
+export const useAdLibFire = (): {
+  fire: (adLibId: string, actionType?: string) => void;
+  message: string | undefined;
+  status: FireStatus;
+} => {
   const playlistId = usePlaylistId();
   const [status, setStatus] = useState<FireStatus>('idle');
   const [message, setMessage] = useState<string | undefined>(undefined);
